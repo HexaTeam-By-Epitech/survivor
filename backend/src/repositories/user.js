@@ -1,15 +1,26 @@
 const prisma = require('@config/prisma');
 
-class UserRepository {
-    static async findAll() {
+class User {
+    static countAll() {
+        return prisma.users.count();
+    }
+
+    static getAllPaginated({ skip, take }) {
         return prisma.users.findMany({
+            skip,
+            take,
             include: {
                 account: true
+            },
+            orderBy: {
+                account: {
+                    created_at: 'asc'
+                }
             }
         });
     }
 
-    static async findById(id) {
+    static async getById(id) {
         return prisma.users.findUnique({
             where: { id },
             include: {
@@ -46,4 +57,4 @@ class UserRepository {
     }
 }
 
-module.exports = UserRepository;
+module.exports = User;

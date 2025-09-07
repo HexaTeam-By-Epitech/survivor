@@ -1,6 +1,6 @@
 const prisma = require("@config/prisma");
 
-class CompanyRepository {
+class Company {
     static async create({ account_id, name, legal_status_id = null, address = null, phone_number = null, description = null }) {
         return prisma.companies.create({
             data: {
@@ -14,7 +14,7 @@ class CompanyRepository {
         });
     }
 
-    static async findById(id) {
+    static async getById(id) {
         return prisma.companies.findUnique({
             where: { id }
         });
@@ -45,4 +45,4 @@ class CompanyRepository {
     }
 }
 
-module.exports = CompanyRepository;
+module.exports = Company;
