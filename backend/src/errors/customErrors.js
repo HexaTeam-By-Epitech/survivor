@@ -43,6 +43,15 @@ class ProjectNotFoundError extends Error {
     }
 }
 
+// --- Event errors ---
+
+class EventNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'EventNotFoundError';
+    }
+}
+
 // --- conflict errors ---
 
 class ConflictError extends Error {
@@ -58,5 +67,6 @@ module.exports = {
     CompanyNotFoundError,
     StartupNotFoundError,
     ProjectNotFoundError,
+    EventNotFoundError,
     ConflictError
 }
