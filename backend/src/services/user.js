@@ -1,4 +1,3 @@
-const bcrypt = require('bcrypt');
 const config = require('@config/index');
 const customErrors = require('@errors/customErrors');
 const UserRepository = require('@repositories/user');
@@ -87,7 +86,7 @@ class User {
         }
 
         if (data.password) {
-            updateFields.password = await bcrypt.hash(data.password, config.security.bcryptRounds);
+            updateFields.password = await AuthRepository.hashPassword(data.password, config.security.bcryptRounds);
         }
 
         const updated = await AccountRepository.update(user.account_id, updateFields);

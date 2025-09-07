@@ -1,4 +1,4 @@
-// --- Acount errors ---
+// --- Account errors ---
 
 class AccountNotFoundError extends Error {
     constructor(message) {

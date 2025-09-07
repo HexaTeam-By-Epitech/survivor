@@ -15,7 +15,7 @@ class ProjectRepository {
             orderBy: {
                 created_at: 'asc'
             }
-        }).catch(() => []);
+        });
     }
 
     static async getById(id) {

@@ -645,6 +645,6 @@ components:
           type: string
         website_url:
           type: string
-          format: email
+          format: url
         description:
           type: string
