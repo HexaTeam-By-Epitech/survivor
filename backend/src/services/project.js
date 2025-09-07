@@ -1,7 +1,7 @@
-const ProjectRepository = require('@repositories/projectRepository');
+const ProjectRepository = require('@repositories/project');
 const ProjectEntity = require('@entities/Project');
 
-class ProjectService {
+class Project {
     static async getAllProjects() {
         const projectRepo = new ProjectRepository();
         return await projectRepo.findAll();
@@ -51,4 +51,4 @@ class ProjectService {
     }
 }
 
-module.exports = ProjectService;
+module.exports = Project;

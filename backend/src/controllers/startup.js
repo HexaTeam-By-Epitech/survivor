@@ -1,6 +1,6 @@
-const StartupService = require("@services/startupService");
+const StartupService = require("@services/startup");
 
-class StartupController {
+class Startup {
     static async getAll(req, res) {
         try {
             const startups = await StartupService.getAll();
@@ -42,4 +42,4 @@ class StartupController {
     }
 }
 
-module.exports = StartupController;
+module.exports = Startup;

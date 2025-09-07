@@ -1,6 +1,6 @@
 const prisma = require("@config/prisma");
 
-class StartupRepository {
+class Startup {
     static async create({ company_id }) {
         return prisma.startups.create({
             data: { company_id }
@@ -62,4 +62,4 @@ class StartupRepository {
     }
 }
 
-module.exports = StartupRepository;
+module.exports = Startup;

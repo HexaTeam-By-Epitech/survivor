@@ -1,8 +1,8 @@
-const StartupRepository = require("@repositories/startupRepository");
-const CompanyRepository = require("@repositories/companyRepository");
-const AccountRepository = require("@repositories/accountRepository");
+const StartupRepository = require("@repositories/startup");
+const CompanyRepository = require("@repositories/company");
+const AccountRepository = require("@repositories/account");
 
-class StartupService {
+class Startup {
     static async getAll() {
         return await StartupRepository.findAll();
     }
@@ -30,4 +30,4 @@ class StartupService {
     }
 }
 
-module.exports = StartupService;
+module.exports = Startup;

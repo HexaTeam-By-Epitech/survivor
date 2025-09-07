@@ -1,6 +1,6 @@
-const ProjectService = require('@services/projectService');
+const ProjectService = require('@services/project');
 
-class ProjectController {
+class Project {
     static async getAllProjects(req, res) {
         try {
             const projects = await ProjectService.getAllProjects();
@@ -56,4 +56,4 @@ class ProjectController {
     }
 }
 
-module.exports = ProjectController;
+module.exports = Project;

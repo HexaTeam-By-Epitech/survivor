@@ -1,6 +1,6 @@
 const prisma = require("@config/prisma");
 
-class ProjectRepository {
+class Project {
     async create({ data }) {
         return await prisma.projects.create({
             data: data,
@@ -50,4 +50,4 @@ class ProjectRepository {
     }
 }
 
-module.exports = ProjectRepository;
+module.exports = Project;

@@ -24,13 +24,13 @@ app.use('/auth', require('@routes/auth'));
 app.use('/startups', require('@routes/startup'));
 
 app.get('/', (req, res) => {
-    res.send('Hello Otter World !');
+    res.send('Hello World !');
 });
 
 // Only start the server when this file is run directly
 if (require.main === module) {
     app.listen(PORT, () => {
-        console.log(`Minimal backend listening on port ${PORT}`);
+        console.log(`Backend listening on port ${PORT}`);
     });
 }
 
