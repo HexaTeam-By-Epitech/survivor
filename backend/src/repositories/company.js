@@ -14,7 +14,7 @@ class Company {
         });
     }
 
-    static async findById(id) {
+    static async getById(id) {
         return prisma.companies.findUnique({
             where: { id }
         });

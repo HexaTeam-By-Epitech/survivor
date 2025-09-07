@@ -1,10 +1,7 @@
 const ApiResponse = require('@utils/response');
 const customErrors = require('@errors/customErrors');
-
-// use cases
 const UserService = require('@services/user');
 
-// Controller methods
 class User {
     static async getAllUsers(req, res) {
         try {
@@ -44,6 +41,7 @@ class User {
             if (error instanceof customErrors.UserNotFoundError) {
                 return ApiResponse.notFound(res, error.message, 'USER_NOT_FOUND');
             }
+
             return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }
@@ -63,6 +61,7 @@ class User {
             if (error instanceof customErrors.ConflictError) {
                 return ApiResponse.conflict(res, error.message, 'MAIL_IN_USE');
             }
+
             return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }
@@ -78,6 +77,7 @@ class User {
             if (error instanceof customErrors.UserNotFoundError) {
                 return ApiResponse.notFound(res, error.message, 'USER_NOT_FOUND');
             }
+
             return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }

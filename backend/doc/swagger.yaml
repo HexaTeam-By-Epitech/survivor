@@ -185,6 +185,19 @@ paths:
         - Startups
       security:
         - bearerAuth: [ ]
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
       responses:
         '200':
           description: List of startups
@@ -235,10 +248,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                website_url:
-                  type: string
+              $ref: '#/components/schemas/StartupUpdateRequest'
       responses:
         '200':
           description: Startup updated successfully
@@ -614,3 +624,14 @@ components:
           type: array
           items:
             type: object
+
+    StartupUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        website_url:
+          type: string
+          format: email
+        description:
+          type: string
