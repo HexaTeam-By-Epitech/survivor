@@ -6,7 +6,7 @@ const AccountRepository = require('@repositories/account');
 
 class Startup {
     static async getAll({ page, limit }) {
-        const safeLimit = Math.min(limit || 10, config.pagination.maxLimit);
+        const safeLimit = Math.min(limit, config.pagination.maxLimit);
         const offset = (page - 1) * safeLimit;
 
         const total = await StartupRepository.countAll();

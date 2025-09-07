@@ -34,6 +34,15 @@ class StartupNotFoundError extends Error {
     }
 }
 
+// --- Project errors ---
+
+class ProjectNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ProjectNotFoundError';
+    }
+}
+
 // --- conflict errors ---
 
 class ConflictError extends Error {
@@ -48,5 +57,6 @@ module.exports = {
     UserNotFoundError,
     CompanyNotFoundError,
     StartupNotFoundError,
+    ProjectNotFoundError,
     ConflictError
 }

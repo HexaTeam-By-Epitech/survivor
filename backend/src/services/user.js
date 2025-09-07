@@ -7,7 +7,7 @@ const AuthRepository = require('@repositories/auth');
 const UserEntity = require('@entities/User');
 
 class User {
-    static async getAllUsers({ page, limit }) {
+    static async getAll({ page, limit }) {
         const safeLimit = Math.min(limit, config.pagination.maxLimit);
         const offset = (page - 1) * safeLimit;
 
@@ -17,7 +17,7 @@ class User {
         return { users, total, page, limit: safeLimit };
     }
 
-    static async getUserById(uid) {
+    static async getById(uid) {
         const userData = await UserRepository.getById(uid);
         if (!userData) {
             throw new customErrors.UserNotFoundError('User not found');
@@ -33,7 +33,7 @@ class User {
         });
     }
 
-    static async createUser(data) {
+    static async create(data) {
         const existing = await AccountRepository.findByEmail(data.email);
         if (existing) {
             throw new customErrors.ConflictError('Email already in use');
@@ -69,7 +69,7 @@ class User {
         };
     }
 
-    static async updateUser(uid, data) {
+    static async update(uid, data) {
         const user = await UserRepository.getById(uid);
         if (!user) {
             throw new customErrors.UserNotFoundError('User not found');
@@ -104,7 +104,7 @@ class User {
         };
     }
 
-    static async deleteUser(uid) {
+    static async delete(uid) {
         const user = await UserRepository.getById(uid);
         if (!user) {
             throw new customErrors.UserNotFoundError('User not found');

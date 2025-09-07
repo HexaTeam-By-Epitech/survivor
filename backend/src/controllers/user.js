@@ -8,7 +8,7 @@ class User {
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || undefined;
 
-            const result = await UserService.getAllUsers({ page, limit });
+            const result = await UserService.getAll({ page, limit });
 
             return ApiResponse.paginated(res, result.users, result.page, result.limit, result.total);
         } catch (error) {
@@ -19,7 +19,7 @@ class User {
     static async getUserById(req, res) {
         try {
             const uid = parseInt(req.params.id);
-            const user = await UserService.getUserById(uid);
+            const user = await UserService.getById(uid);
 
             return ApiResponse.success(res, user);
         } catch (error) {
@@ -34,7 +34,7 @@ class User {
     static async createUser(req, res) {
         try {
             const data = req.body;
-            const user = await UserService.createUser(data);
+            const user = await UserService.create(data);
 
             return ApiResponse.success(res, user);
         } catch (error) {
@@ -51,7 +51,7 @@ class User {
             const uid = parseInt(req.params.id);
             const data = req.body;
 
-            await UserService.updateUser(uid, data);
+            await UserService.update(uid, data);
 
             return ApiResponse.success(res, null, 'User updated successfully');
         } catch (error) {
@@ -70,7 +70,7 @@ class User {
         try {
             const uid = parseInt(req.params.id);
 
-            await UserService.deleteUser(uid);
+            await UserService.delete(uid);
 
             return ApiResponse.success(res, null, 'User deleted successfully');
         } catch (error) {

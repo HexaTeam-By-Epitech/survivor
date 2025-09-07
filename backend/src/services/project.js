@@ -1,20 +1,30 @@
 const ProjectRepository = require('@repositories/project');
 const ProjectEntity = require('@entities/Project');
+const customErrors = require('@errors/customErrors');
+const config = require('@config/index');
 
 class Project {
-    static async getAllProjects() {
-        const projectRepo = new ProjectRepository();
-        return await projectRepo.findAll();
+    static async getAll({ page, limit }) {
+        const safeLimit = Math.min(limit, config.pagination.maxLimit);
+        const offset = (page - 1) * safeLimit;
+
+        const total = await ProjectRepository.countAll();
+        const projects = await ProjectRepository.getAllPaginated({ skip: offset, take: safeLimit });
+
+        return { projects, total, page, limit: safeLimit };
     }
 
-    static async getProjectById(id) {
-        const projectRepo = new ProjectRepository();
-        return await projectRepo.findById(id);
+    static async getById(id) {
+        const projectData = await ProjectRepository.getById(id);
+        if (!projectData) {
+            throw new customErrors.ProjectNotFoundError('Project not found');
+        }
+
+        return new ProjectEntity(projectData);
     }
 
-    static async createProject(data) {
+    static async create(data) {
         const entity = new ProjectEntity({
-            id: data.id || null,
             name: data.name,
             startup_id: data.startup_id,
             project_status_id: data.project_status_id,
@@ -23,31 +33,37 @@ class Project {
             maturity: data.maturity
         });
 
-        const projectRepo = new ProjectRepository();
-        return await projectRepo.create({ data: entity.toObject() });
+        const project = await ProjectRepository.create(entity.toObject());
+
+        return new ProjectEntity(project);
     }
 
-    static async updateProject(id, data) {
-        const projectRepo = new ProjectRepository();
-        const exists = await projectRepo.findById(id);
-        if (!exists) return null;
+    static async update(id, data) {
+        const project = await ProjectRepository.getById(id);
+        if (!project) {
+            throw new customErrors.ProjectNotFoundError('Project not found');
+        }
 
-        const updateData = {};
-        if (data.name) updateData.name = data.name;
-        if (data.startup_id) updateData.startup_id = data.startup_id;
-        if (data.project_status_id !== undefined) updateData.project_status_id = data.project_status_id;
-        if (data.needs) updateData.needs = data.needs;
-        if (data.sector_id !== undefined) updateData.sector_id = data.sector_id;
-        if (data.maturity) updateData.maturity = data.maturity;
+        const updateFields = {};
+        if (data.name) updateFields.name = data.name;
+        if (data.startup_id) updateFields.startup_id = data.startup_id;
+        if (data.project_status_id !== undefined) updateFields.project_status_id = data.project_status_id;
+        if (data.needs) updateFields.needs = data.needs;
+        if (data.sector_id !== undefined) updateFields.sector_id = data.sector_id;
+        if (data.maturity) updateFields.maturity = data.maturity;
 
-        return await projectRepo.update(id, updateData);
+        const updated = await ProjectRepository.update(id, updateFields);
+
+        return new ProjectEntity(updated);
     }
 
-    static async deleteProject(id) {
-        const projectRepo = new ProjectRepository();
-        const exists = await projectRepo.findById(id);
-        if (!exists) return null;
-        return await projectRepo.delete(id);
+    static async delete(id) {
+        const project = await ProjectRepository.getById(id);
+        if (!project) {
+            throw new customErrors.ProjectNotFoundError('Project not found');
+        }
+
+        await ProjectRepository.delete(id);
     }
 }
 

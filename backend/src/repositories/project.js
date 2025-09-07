@@ -1,53 +1,70 @@
-const prisma = require("@config/prisma");
+const prisma = require('@config/prisma');
 
-class Project {
-    async create({ data }) {
-        return await prisma.projects.create({
-            data: data,
-            include: { Startups: true }
-        });
+class ProjectRepository {
+    static countAll() {
+        return prisma.projects.count();
     }
 
-    async findById(id) {
-        return await prisma.projects.findUnique({
+    static getAllPaginated({ skip, take }) {
+        return prisma.projects.findMany({
+            skip,
+            take,
+            include: {
+                Startups: true
+            },
+            orderBy: {
+                created_at: 'asc'
+            }
+        }).catch(() => []);
+    }
+
+    static async getById(id) {
+        return prisma.projects.findUnique({
             where: { id },
-            include: { Startups: true }
+            include: {
+                Startups: true
+            }
         });
     }
 
-    async findAll() {
-        return await prisma.projects.findMany({
-            include: { Startups: true }
+    static async create(data) {
+        return prisma.projects.create({
+            data,
+            include: {
+                Startups: true
+            }
         });
     }
 
-    async update(id, data) {
-        return await prisma.projects.update({
+    static async update(id, data) {
+        return prisma.projects.update({
             where: { id },
             data,
-            include: { Startups: true }
+            include: {
+                Startups: true
+            }
         });
     }
 
-    async delete(id) {
-        return await prisma.projects.delete({
+    static async delete(id) {
+        return prisma.projects.delete({
             where: { id }
         });
     }
 
-    async findByStartupId(startupId) {
-        return await prisma.projects.findMany({
+    static async findByStartupId(startupId) {
+        return prisma.projects.findMany({
             where: { startup_id: startupId },
             include: { Startups: true }
         });
     }
 
-    async findByName(name) {
-        return await prisma.projects.findMany({
+    static async findByName(name) {
+        return prisma.projects.findMany({
             where: { name: { contains: name, mode: 'insensitive' } },
             include: { Startups: true }
         });
     }
 }
 
-module.exports = Project;
+module.exports = ProjectRepository;

@@ -1,57 +1,77 @@
+const ApiResponse = require('@utils/response');
+const customErrors = require('@errors/customErrors');
 const ProjectService = require('@services/project');
 
 class Project {
     static async getAllProjects(req, res) {
         try {
-            const projects = await ProjectService.getAllProjects();
-            return res.json(projects);
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || undefined;
+
+            const result = await ProjectService.getAll({ page, limit });
+
+            return ApiResponse.paginated(res, result.projects, result.page, result.limit, result.total);
         } catch (error) {
-            console.log(error);
-            return res.status(500).json({ error: 'Internal server error' });
+            return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }
 
     static async getProjectById(req, res) {
         try {
-            const { id } = req.params;
-            const project = await ProjectService.getProjectById(Number(id));
-            if (!project) return res.status(404).json({ error: 'Project not found' });
-            return res.json(project);
+            const id = parseInt(req.params.id);
+            const project = await ProjectService.getById(id);
+
+            return ApiResponse.success(res, project);
         } catch (error) {
-            void error;
-            return res.status(500).json({ error: 'Internal server error' });
+            if (error instanceof customErrors.ProjectNotFoundError) {
+                return ApiResponse.notFound(res, error.message, 'PROJECT_NOT_FOUND');
+            }
+
+            return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }
 
     static async createProject(req, res) {
         try {
-            const project = await ProjectService.createProject(req.body);
-            return res.status(201).json(project);
+            const data = req.body;
+            const project = await ProjectService.create(data);
+
+            return ApiResponse.success(res, project, 'Project created successfully');
         } catch (error) {
-            return res.status(400).json({ error: error.message });
+            return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }
 
     static async updateProject(req, res) {
         try {
-            const { id } = req.params;
-            const updated = await ProjectService.updateProject(Number(id), req.body);
-            if (!updated) return res.status(404).json({ error: 'Project not found' });
-            return res.json(updated);
+            const id = parseInt(req.params.id);
+            const data = req.body;
+
+            await ProjectService.update(id, data);
+
+            return ApiResponse.success(res, null, 'Project updated successfully');
         } catch (error) {
-            return res.status(400).json({ error: error.message });
+            if (error instanceof customErrors.ProjectNotFoundError) {
+                return ApiResponse.notFound(res, error.message, 'PROJECT_NOT_FOUND');
+            }
+
+            return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }
 
     static async deleteProject(req, res) {
         try {
-            const { id } = req.params;
-            const deleted = await ProjectService.deleteProject(Number(id));
-            if (!deleted) return res.status(404).json({ error: 'Project not found' });
-            return res.status(204).send();
+            const id = parseInt(req.params.id);
+
+            await ProjectService.delete(id);
+
+            return ApiResponse.success(res, null, 'Project deleted successfully');
         } catch (error) {
-            void error;
-            return res.status(500).json({ error: 'Internal server error' });
+            if (error instanceof customErrors.ProjectNotFoundError) {
+                return ApiResponse.notFound(res, error.message, 'PROJECT_NOT_FOUND');
+            }
+
+            return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }
 }
