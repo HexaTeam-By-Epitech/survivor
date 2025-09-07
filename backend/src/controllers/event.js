@@ -1,6 +1,6 @@
 const ApiResponse = require('@utils/response');
 const customErrors = require('@errors/customErrors');
-const EventService = require('@services/user');
+const EventService = require('@services/event');
 
 class Event {
     static async getAllEvents(req, res) {

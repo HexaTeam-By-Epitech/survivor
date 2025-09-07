@@ -456,7 +456,7 @@ paths:
             schema:
               $ref: '#/components/schemas/EventCreateRequest'
       responses:
-        '201':
+        '200':
           description: Event created successfully
           content:
             application/json:

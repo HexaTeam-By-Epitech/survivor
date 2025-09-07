@@ -32,7 +32,7 @@ class Event {
             throw new customErrors.EventNotFoundError('Event not found');
         }
 
-        await EventRepository.update(id, data);
+        return await EventRepository.update(id, data);
     }
 
     static async delete(id) {
