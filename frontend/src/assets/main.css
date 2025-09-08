@@ -1,35 +1,28 @@
-@import './base.css';
+:root {
+    --color-theme1: #F18585;
+    --color-theme2: #F49C9C;
+    --color-theme3: #F6AEAE;
+    --color-theme4: #F8CACF;
+    --color-theme5: #EED5FB;
+    --color-theme6: #E4BEF8;
+    --color-theme7: #D5A8F2;
+    --color-theme8: #CB90F1;
+    --color-theme9: #C174F2;
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+    --header-height: 10vh;
+
+    background: linear-gradient(var(--color-theme4), var(--color-theme6));
+    min-height: 100vh;
 }
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+body {
+    font-family: 'Open Sans', sans-serif;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+h1 h2 h3 h4 h5 h6 {
+    font-family: 'Montserra', sans-serif;
 }
 
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+.header-size {
+    height: var(--header-height);
 }
