@@ -9,6 +9,7 @@ const authMiddleware = (req, res, next) => {
         req.startupId = decoded.startupId;
         next();
     } catch (err) {
+        void err;
         res.status(401).json({ error: "Invalid token" });
     }
 };

@@ -1,4 +1,4 @@
-const AuthService = require("@services/authService");
+const AuthService = require("@services/auth");
 const authService = new AuthService();
 
 exports.signup = async (req, res) => {

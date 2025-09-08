@@ -49,8 +49,1037 @@ paths:
         '401':
           description: Invalid credentials
 
+  /users:
+    get:
+      summary: Get all users
+      tags:
+        - Users
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Paginated list of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserResponse'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a user
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '409':
+          description: Email already in use
+        '500':
+          description: Internal server error
+
+  /users/{id}:
+    get:
+      summary: Get a user by ID
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+
+    put:
+      summary: Update a user by ID
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+        '409':
+          description: Email already in use
+
+    delete:
+      summary: Delete a user by ID
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: User deleted successfully
+        '404':
+          description: User not found
+
+  /startups:
+    get:
+      summary: Get all startups
+      tags:
+        - Startups
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of startups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Startup'
+
+  /startups/{id}:
+    get:
+      summary: Get a startup by ID
+      tags:
+        - Startups
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Startup found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Startup'
+        '404':
+          description: Startup not found
+
+    put:
+      summary: Update a startup by ID
+      tags:
+        - Startups
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartupUpdateRequest'
+      responses:
+        '200':
+          description: Startup updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Startup'
+        '404':
+          description: Startup not found
+
+    delete:
+      summary: Delete a startup by ID
+      tags:
+        - Startups
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Startup deleted successfully
+        '404':
+          description: Startup not found
+
+  /projects:
+    get:
+      summary: Get all projects
+      tags:
+        - Projects
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new project
+      tags:
+        - Projects
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreateRequest'
+      responses:
+        '201':
+          description: Project created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: Bad request - Invalid data
+        '500':
+          description: Internal server error
+
+  /projects/{id}:
+    get:
+      summary: Get a project by ID
+      tags:
+        - Projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Project ID
+      responses:
+        '200':
+          description: Project found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Project not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update a project by ID
+      tags:
+        - Projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Project ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateRequest'
+      responses:
+        '200':
+          description: Project updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: Bad request - Invalid data
+        '404':
+          description: Project not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a project by ID
+      tags:
+        - Projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Project ID
+      responses:
+        '204':
+          description: Project deleted successfully
+        '404':
+          description: Project not found
+        '500':
+          description: Internal server error
+
+  /events:
+    get:
+      summary: Get all events
+      tags:
+        - Events
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new event
+      tags:
+        - Events
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCreateRequest'
+      responses:
+        '200':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /events/{id}:
+    get:
+      summary: Get an event by ID
+      tags:
+        - Events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Event found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '404':
+          description: Event not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update an event by ID
+      tags:
+        - Events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventUpdateRequest'
+      responses:
+        '200':
+          description: Event updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: Invalid input
+        '404':
+          description: Event not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete an event by ID
+      tags:
+        - Events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Event deleted successfully
+        '404':
+          description: Event not found
+        '500':
+          description: Internal server error
+
+  /news:
+    get:
+      summary: Get all news
+      tags:
+        - News
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of news
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/News'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a news item
+      tags:
+        - News
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewsCreateRequest'
+      responses:
+        '200':
+          description: News created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/News'
+        '400':
+          description: Bad request
+
+  /news/{id}:
+    get:
+      summary: Get a news item by ID
+      tags:
+        - News
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: News found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/News'
+        '404':
+          description: News not found
+
+    put:
+      summary: Update a news item by ID
+      tags:
+        - News
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewsUpdateRequest'
+      responses:
+        '200':
+          description: News updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/News'
+        '400':
+          description: Bad request
+        '404':
+          description: News not found
+
+    delete:
+      summary: Delete a news item by ID
+      tags:
+        - News
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+            description: News deleted successfully
+        '404':
+          description: News not found
+
+  /sectors:
+    get:
+      summary: Get all sectors
+      tags:
+        - Sectors
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of sectors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sector'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new sector
+      tags:
+        - Sectors
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SectorCreateRequest'
+      responses:
+        '201':
+          description: Sector created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+        '500':
+          description: Internal server error
+
+  /sectors/{id}:
+    get:
+      summary: Get a sector by ID
+      tags:
+        - Sectors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sector found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+        '404':
+          description: Sector not found
+
+    put:
+      summary: Update a sector by ID
+      tags:
+        - Sectors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SectorUpdateRequest'
+      responses:
+        '200':
+          description: Sector updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+        '404':
+          description: Sector not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a sector by ID
+      tags:
+        - Sectors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Sector deleted successfully
+        '404':
+          description: Sector not found
+        '500':
+          description: Internal server error
+
+  /event-categories:
+    get:
+      summary: Get all event categories
+      tags:
+        - Event Categories
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of event categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventCategory'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new event category
+      tags:
+        - Event Categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCategoryCreateRequest'
+      responses:
+        '201':
+          description: Event category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCategory'
+        '409':
+          description: Name conflict
+        '500':
+          description: Internal server error
+
+  /event-categories/{id}:
+    get:
+      summary: Get an event category by ID
+      tags:
+        - Event Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Event category found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCategory'
+        '404':
+          description: Event category not found
+
+    put:
+      summary: Update an event category by ID
+      tags:
+        - Event Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCategoryUpdateRequest'
+      responses:
+        '200':
+          description: Event category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCategory'
+        '404':
+          description: Event category not found
+        '409':
+          description: Name conflict
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete an event category by ID
+      tags:
+        - Event Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Event category deleted successfully
+        '404':
+          description: Event category not found
+        '500':
+          description: Internal server error
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique project identifier
+        startup_id:
+          type: integer
+          description: ID of the startup that owns this project
+        name:
+          type: string
+          description: Project name
+        project_status_id:
+          type: integer
+          nullable: true
+          description: Status of the project
+        needs:
+          type: string
+          description: Project needs and requirements
+        sector_id:
+          type: integer
+          nullable: true
+          description: Industry sector ID
+        maturity:
+          type: string
+          description: Project maturity level
+        created_at:
+          type: string
+          format: date-time
+          description: Project creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    ProjectCreateRequest:
+      type: object
+      required:
+        - startup_id
+        - name
+      properties:
+        startup_id:
+          type: integer
+          description: ID of the startup that owns this project
+        name:
+          type: string
+          description: Project name
+          minLength: 1
+          maxLength: 255
+        project_status_id:
+          type: integer
+          nullable: true
+          description: Status of the project
+        needs:
+          type: string
+          description: Project needs and requirements
+          maxLength: 1000
+        sector_id:
+          type: integer
+          nullable: true
+          description: Industry sector ID
+        maturity:
+          type: string
+          description: Project maturity level
+          maxLength: 100
+
+    ProjectUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Project name
+          minLength: 1
+          maxLength: 255
+        project_status_id:
+          type: integer
+          nullable: true
+          description: Status of the project
+        needs:
+          type: string
+          description: Project needs and requirements
+          maxLength: 1000
+        sector_id:
+          type: integer
+          nullable: true
+          description: Industry sector ID
+        maturity:
+          type: string
+          description: Project maturity level
+          maxLength: 100
+
+    UserCreateRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    UserUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        account:
+          type: object
+          properties:
+            id:
+              type: integer
+            email:
+              type: string
+              format: email
+            name:
+              type: string
+            image_path:
+              type: string
+              nullable: true
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+              nullable: true
+
     SignupRequest:
       type: object
       required:
@@ -132,3 +1161,211 @@ components:
           type: array
           items:
             type: object
+
+    StartupUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        website_url:
+          type: string
+          format: url
+        description:
+          type: string
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+          nullable: true
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    EventCreateRequest:
+      type: object
+      required:
+        - title
+        - start_date
+        - end_date
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+
+    EventUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+
+    News:
+      type: object
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        date:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    NewsCreateRequest:
+      type: object
+      required:
+        - company_id
+        - title
+        - description
+        - date
+      properties:
+        company_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        date:
+          type: string
+          format: date-time
+
+    NewsUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        date:
+          type: string
+          format: date-time
+
+    Sector:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique sector identifier
+        name:
+          type: string
+          description: Sector name
+        description:
+          type: string
+          nullable: true
+          description: Optional sector description
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp of creation
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+
+    SectorCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Sector name
+        description:
+          type: string
+          nullable: true
+          description: Optional sector description
+
+    SectorUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Sector name
+        description:
+          type: string
+          nullable: true
+          description: Optional sector description
+
+    EventCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    EventCategoryCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    EventCategoryUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true

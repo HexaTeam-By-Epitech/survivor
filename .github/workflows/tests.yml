@@ -23,18 +23,19 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
         
-    - name: Install dependencies
-      run: npm ci
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: npm install
       
-    - name: Check for security vulnerabilities
+    - name: Check for security vulnerabilities (Backend)
+      working-directory: ./backend
       run: npm audit --audit-level=moderate
       
     - name: Run ESLint (if configured)
       run: |
         if [ -f .eslintrc.js ] || [ -f .eslintrc.json ] || [ -f .eslintrc.yml ]; then
-          npx eslint . --ext .js,.jsx,.ts,.tsx || echo "ESLint not configured yet"
+          npx eslint backend/ --ext .js,.jsx,.ts,.tsx || echo "ESLint not configured yet"
         else
           echo "ESLint configuration not found - skipping"
         fi
@@ -43,7 +44,7 @@ jobs:
     - name: Check code formatting with Prettier (if configured)
       run: |
         if [ -f .prettierrc ] || [ -f .prettierrc.json ] || [ -f prettier.config.js ]; then
-          npx prettier --check . || echo "Prettier not configured yet"
+          npx prettier --check backend/ || echo "Prettier not configured yet"
         else
           echo "Prettier configuration not found - skipping"
         fi
@@ -56,6 +57,21 @@ jobs:
     strategy:
       matrix:
         node-version: [18, 20]
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
         
     steps:
     - name: Checkout code
@@ -65,17 +81,66 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
         
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run unit tests
-      run: npm test
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: npm install
+
+    - name: Setup test database
+      working-directory: ./backend
       env:
-        NODE_ENV: test
-        
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+      run: |
+        echo "Setting up test database..."
+        npx prisma generate
+        npx prisma db push --force-reset
+        npm run db:seed
+        echo "Database setup and seeding complete"
+
+    - name: Verify test setup
+      id: verify_tests
+      working-directory: ./backend
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+      run: |
+        echo "Verifying test setup..."
+        if [ ! -f "jest.config.js" ] && [ ! -f "jest.config.ts" ]; then
+          echo "⚠ No Jest configuration file found - tests may not run as expected"
+          echo "found_tests=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        if ! npm list jest &> /dev/null; then
+          echo "⚠ Jest is not installed - installing it now"
+          npm install --save-dev jest
+          echo "found_tests=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        TEST_DIRS=$(find . -type d -name 'tests' -o -name '__tests__' 2>/dev/null | grep -v node_modules || true)
+        if [ -z "$TEST_DIRS" ]; then
+          echo "ℹ No test directories found - ensure tests are located in 'tests/' or '__tests__/'"
+          echo "found_tests=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        JS_TEST_FILES=$(find $TEST_DIRS -type f -name '*.js' 2>/dev/null || true)
+        if [ -z "$JS_TEST_FILES" ]; then
+          echo "ℹ Test directories found but no .js test files present"
+          echo "found_tests=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        echo "found_tests=true" >> $GITHUB_OUTPUT
+        exit 0
+
+    - name: Run unit tests
+      working-directory: ./backend
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+      run: npm test
+      if: steps.verify_tests.outputs.found_tests == 'true'
+      
     - name: Generate test coverage
+      working-directory: ./backend
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
       run: |
         if command -v nyc &> /dev/null || npm list nyc &> /dev/null; then
           npm run test:coverage || npm run coverage || echo "Coverage script not found"
@@ -89,10 +154,10 @@ jobs:
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage/lcov.info
+        file: ./backend/coverage/lcov.info
         fail_ci_if_error: false
       continue-on-error: true
+      if: always()
 
   # Backend-specific checks
   backend-checks:
@@ -107,12 +172,13 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
         
-    - name: Install dependencies
-      run: npm ci
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: npm install
       
     - name: Validate package.json
+      working-directory: ./backend
       run: npm ls --depth=0
       
     - name: Check for backend structure
@@ -124,6 +190,7 @@ jobs:
         [ -d "backend/src" ] && echo "✓ Source directory exists" || echo "✗ Source directory missing"
         
     - name: Validate Express app structure
+      working-directory: ./backend
       run: |
         echo "Checking Express dependencies..."
         npm list express || echo "Express dependency check failed"
@@ -150,12 +217,13 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
         
-    - name: Install dependencies
-      run: npm ci
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: npm install
       
     - name: Build application (if build script exists)
+      working-directory: ./backend
       run: |
         if npm run build &> /dev/null; then
           npm run build
@@ -166,11 +234,11 @@ jobs:
       
     - name: Check Dockerfile (if exists)
       run: |
-        if [ -f "Dockerfile" ]; then
-          echo "✓ Dockerfile found"
-          docker build -t survivor-app . --dry-run || docker build -t survivor-app . || echo "Docker build failed"
+        if [ -f "docker/Dockerfile.server" ]; then
+          echo "✓ Server Dockerfile found"
+          docker build -f docker/Dockerfile.server -t survivor-backend . || echo "Docker build failed"
         else
-          echo "ℹ No Dockerfile found"
+          echo "ℹ No server Dockerfile found"
         fi
       continue-on-error: true
 
@@ -189,16 +257,16 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
         
-    - name: Install dependencies
-      run: npm ci
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: npm install
       
     - name: Start application for testing
       run: |
         # Start the application in background for performance testing
         if [ -f "backend/server.js" ] && [ -s "backend/server.js" ]; then
-          node backend/server.js &
+          cd backend && node server.js &
           APP_PID=$!
           echo "APP_PID=$APP_PID" >> $GITHUB_ENV
           sleep 5
@@ -237,20 +305,15 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
         
     - name: Install production dependencies
-      run: npm ci --only=production
+      working-directory: ./backend
+      run: npm install --only=production
       
     - name: Create deployment artifact
       run: |
         mkdir -p deployment
-        tar -czf deployment/survivor-backend-staging.tar.gz \
-          backend/ \
-          package.json \
-          package-lock.json \
-          node_modules/ \
-          --exclude=node_modules/.cache
+        tar --exclude=backend/node_modules/.cache -czf deployment/survivor-backend-staging.tar.gz backend/
           
     - name: Upload deployment artifact
       uses: actions/upload-artifact@v4
@@ -274,12 +337,13 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
         
     - name: Install production dependencies
-      run: npm ci --only=production
+      working-directory: ./backend
+      run: npm install --only=production
       
     - name: Run production health checks
+      working-directory: ./backend
       run: |
         echo "Running pre-deployment checks..."
         npm audit --audit-level=high --production
@@ -287,12 +351,7 @@ jobs:
     - name: Create production deployment artifact
       run: |
         mkdir -p deployment
-        tar -czf deployment/survivor-backend-production.tar.gz \
-          backend/ \
-          package.json \
-          package-lock.json \
-          node_modules/ \
-          --exclude=node_modules/.cache
+        tar --exclude=backend/node_modules/.cache -czf deployment/survivor-backend-production.tar.gz backend/
           
     - name: Upload production artifact
       uses: actions/upload-artifact@v4

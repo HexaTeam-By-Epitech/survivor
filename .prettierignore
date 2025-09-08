@@ -1,9 +1,9 @@
-node_modules/
-coverage/
-dist/
-build/
+*/*node_modules/
+*coverage/
+*dist/
+*/*build/
 *.log
-.env
-.env.local
-.env.production
-package-lock.json
+*/*.env
+*/*.env.local
+*/*.env.production
+*/*package-lock.json

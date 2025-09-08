@@ -5,6 +5,7 @@ set -euo pipefail
 DB_NAME="incubator"
 DB_USER="incubator_user"
 DB_PASS=$(openssl rand -base64 12)
+
 # In Docker network, the database service is accessible via the service name
 DB_HOST="db"
 DB_PORT="5432"
@@ -33,10 +34,12 @@ echo "✅ Base de données accessible."
 echo "Création de l'utilisateur PostgreSQL..."
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$POSTGRES_USER" -d postgres -tc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 || \
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$POSTGRES_USER" -d postgres -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
+
 echo "✅ Utilisateur prêt."
 
 # --- Création DB ---
 echo "Création de la base de données..."
+
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$POSTGRES_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 || \
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
 echo "✅ Base de données prête."
@@ -49,12 +52,14 @@ if [ -f "$SQL_SCHEMA" ]; then
     
     # Importer le schéma directement
     psql -h "$DB_HOST" -p "$DB_PORT" -U "$POSTGRES_USER" -d "$DB_NAME" -f "$SQL_SCHEMA"
+
     
     echo "✅ Schéma SQL appliqué."
 
     # --- Assigner toutes les tables, séquences et fonctions à l'utilisateur ---
     echo "Assignation de tous les objets à $DB_USER..."
     psql -h "$DB_HOST" -p "$DB_PORT" -U "$POSTGRES_USER" -d "$DB_NAME" -c "DO \$\$ DECLARE r RECORD; BEGIN
+
         FOR r IN SELECT tablename FROM pg_tables WHERE schemaname='public' LOOP
             EXECUTE format('ALTER TABLE %I OWNER TO %I;', r.tablename, '$DB_USER');
         END LOOP;

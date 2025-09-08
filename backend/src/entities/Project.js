@@ -1,60 +1,41 @@
 class ProjectEntity {
     constructor({
-        id,
+        id = null,
+        startup_id,
         name,
-        description = "",
-        founders = [],
-        contacts = [],
-        progress = "",
-        needs = [],
-        links = [],
-        startupId
+        project_status_id = null,
+        needs = "",
+        sector_id = null,
+        maturity = ""
     }) {
-        if (!id) throw new Error("Project ID is required");
+        if (!startup_id) throw new Error("Startup ID is required");
         if (!name) throw new Error("Project name is required");
-        if (!startupId) throw new Error("Associated startup ID is required");
 
         this.id = id;
+        this.startup_id = startup_id;
         this.name = name;
-        this.description = description;
-        this.founders = founders;
-        this.contacts = contacts;
-        this.progress = progress;
+        this.project_status_id = project_status_id;
         this.needs = needs;
-        this.links = links;
-        this.startupId = startupId;
+        this.sector_id = sector_id;
+        this.maturity = maturity;
     }
 
     toObject() {
-        return {
-            id: this.id,
+        const obj = {
+            startup_id: this.startup_id,
             name: this.name,
-            description: this.description,
-            founders: this.founders,
-            contacts: this.contacts,
-            progress: this.progress,
+            project_status_id: this.project_status_id,
             needs: this.needs,
-            links: this.links,
-            startupId: this.startupId
+            sector_id: this.sector_id,
+            maturity: this.maturity
         };
-    }
 
-    update({
-       name,
-       description,
-       founders,
-       contacts,
-       progress,
-       needs,
-       links
-    }) {
-        if (name !== undefined) this.name = name;
-        if (description !== undefined) this.description = description;
-        if (founders !== undefined) this.founders = founders;
-        if (contacts !== undefined) this.contacts = contacts;
-        if (progress !== undefined) this.progress = progress;
-        if (needs !== undefined) this.needs = needs;
-        if (links !== undefined) this.links = links;
+        // Only include id if it's set (for updates)
+        if (this.id !== null) {
+            obj.id = this.id;
+        }
+
+        return obj;
     }
 }
 

@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Accounts {
+  id              Int         @id @default(autoincrement())
+  name            String      @db.VarChar
+  email           String      @unique @db.VarChar(255)
+  image_path      String?     @db.VarChar(255)
+  password        String      @db.VarChar(255)
+  created_at      DateTime?   @default(now()) @db.Timestamp(6)
+  deleted_at      DateTime?   @db.Timestamp(6)
+  last_updated_at DateTime?   @default(now()) @db.Timestamp(6)
+  Companies       Companies[]
+  Users           Users[]
+}
+
+model Admins {
+  id      Int   @id @default(autoincrement())
+  user_id Int
+  Users   Users @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Companies {
+  id              Int            @id @default(autoincrement())
+  account_id      Int
+  name            String         @unique @db.VarChar(255)
+  legal_status_id Int?
+  address         String?
+  phone_number    String?        @db.VarChar(15)
+  description     String?
+  Accounts        Accounts       @relation(fields: [account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  LegalStatus     LegalStatus?   @relation(fields: [legal_status_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  News            News[]
+  Partners        Partners[]
+  SocialMedias    SocialMedias[]
+  Startups        Startups[]
+}
+
+model EventDates {
+  id       Int      @id @default(autoincrement())
+  date     DateTime @db.Timestamp(6)
+  event_id Int
+  Events   Events   @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Events {
+  id                 Int               @id @default(autoincrement())
+  name               String            @unique @db.VarChar(255)
+  location           String?           @db.VarChar(255)
+  description        String?
+  event_type_id      Int?
+  target_audience_id Int?
+  EventDates         EventDates[]
+  EventsCategories   EventsCategories? @relation(fields: [event_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  TargetAudiences    TargetAudiences?  @relation(fields: [target_audience_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model EventsCategories {
+  id     Int      @id @default(autoincrement())
+  name   String   @unique @db.VarChar(255)
+  Events Events[]
+}
+
+model Founders {
+  id               Int                @id @default(autoincrement())
+  user_id          Int
+  Users            Users              @relation(fields: [user_id], references: [id], onDelete: NoAction)
+  StartupsFounders StartupsFounders[]
+}
+
+model InvestmentFocus {
+  id        Int         @id @default(autoincrement())
+  name      String      @db.VarChar(255)
+  sector_id Int
+  Sectors   Sectors     @relation(fields: [sector_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Investors Investors[]
+}
+
+model InvestorTypes {
+  id        Int         @id @default(autoincrement())
+  name      String      @db.VarChar(255)
+  Investors Investors[]
+}
+
+model Investors {
+  id                  Int              @id @default(autoincrement())
+  user_id             Int
+  legal_status_id     Int?
+  address             String?
+  phone_number        String?          @db.VarChar(15)
+  description         String?
+  investment_focus_id Int?
+  investor_type_id    Int?
+  InvestmentFocus     InvestmentFocus? @relation(fields: [investment_focus_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  InvestorTypes       InvestorTypes?   @relation(fields: [investor_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  LegalStatus         LegalStatus?     @relation(fields: [legal_status_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Users               Users            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model LegalStatus {
+  id        Int         @id @default(autoincrement())
+  name      String      @db.VarChar(255)
+  Companies Companies[]
+  Investors Investors[]
+}
+
+model News {
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(255)
+  location    String?   @db.VarChar(255)
+  description String
+  company_id  Int
+  Companies   Companies @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model PartnerTypes {
+  id       Int        @id @default(autoincrement())
+  name     String     @db.VarChar(255)
+  Partners Partners[]
+}
+
+model Partners {
+  id                  Int           @id @default(autoincrement())
+  company_id          Int
+  partnership_type_id Int?
+  Companies           Companies     @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  PartnerTypes        PartnerTypes? @relation(fields: [partnership_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ProjectStatus {
+  id       Int        @id @default(autoincrement())
+  name     String     @db.VarChar(255)
+  Projects Projects[]
+}
+
+model Projects {
+  id                Int            @id @default(autoincrement())
+  startup_id        Int
+  name              String         @unique @db.VarChar(255)
+  project_status_id Int?
+  needs             String?        @db.VarChar(50)
+  sector_id         Int?
+  maturity          String?        @db.VarChar(50)
+  ProjectStatus     ProjectStatus? @relation(fields: [project_status_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Sectors           Sectors?       @relation(fields: [sector_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Startups          Startups       @relation(fields: [startup_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Sectors {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  InvestmentFocus InvestmentFocus[]
+  Projects        Projects[]
+}
+
+model SocialMedias {
+  id         Int       @id @default(autoincrement())
+  url        String    @db.VarChar(255)
+  company_id Int
+  Companies  Companies @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Startups {
+  id               Int                @id @default(autoincrement())
+  company_id       Int
+  website_url      String?            @db.VarChar(300)
+  Projects         Projects[]
+  Companies        Companies          @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  StartupsFounders StartupsFounders[]
+}
+
+model TargetAudiences {
+  id     Int      @id @default(autoincrement())
+  name   String   @db.VarChar(255)
+  Events Events[]
+}
+
+model Users {
+  id         Int         @id @default(autoincrement())
+  account_id Int
+  Admins     Admins[]
+  Founders   Founders[]
+  Investors  Investors[]
+  account    Accounts    @relation(fields: [account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ValidationErrors {
+  id                  Int    @id @default(autoincrement())
+  unformatted_message String
+  type                String @unique @db.VarChar(255)
+}
+
+model StartupsFounders {
+  id         Int      @id @default(autoincrement())
+  startup_id Int
+  founder_id Int
+  Founders   Founders @relation(fields: [founder_id], references: [id], onDelete: Cascade)
+  Startups   Startups @relation(fields: [startup_id], references: [id], onDelete: Cascade)
+}
