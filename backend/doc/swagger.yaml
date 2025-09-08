@@ -794,6 +794,139 @@ paths:
         '500':
           description: Internal server error
 
+  /event-categories:
+    get:
+      summary: Get all event categories
+      tags:
+        - Event Categories
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of event categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventCategory'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new event category
+      tags:
+        - Event Categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCategoryCreateRequest'
+      responses:
+        '201':
+          description: Event category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCategory'
+        '409':
+          description: Name conflict
+        '500':
+          description: Internal server error
+
+  /event-categories/{id}:
+    get:
+      summary: Get an event category by ID
+      tags:
+        - Event Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Event category found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCategory'
+        '404':
+          description: Event category not found
+
+    put:
+      summary: Update an event category by ID
+      tags:
+        - Event Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCategoryUpdateRequest'
+      responses:
+        '200':
+          description: Event category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCategory'
+        '404':
+          description: Event category not found
+        '409':
+          description: Name conflict
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete an event category by ID
+      tags:
+        - Event Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Event category deleted successfully
+        '404':
+          description: Event category not found
+        '500':
+          description: Internal server error
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1199,3 +1332,40 @@ components:
           type: string
           nullable: true
           description: Optional sector description
+
+    EventCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    EventCategoryCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    EventCategoryUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
