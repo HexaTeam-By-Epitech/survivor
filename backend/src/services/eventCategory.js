@@ -34,12 +34,12 @@ class EventCategory {
     static async update(id, data) {
         const existing = await EventCategoryRepository.getById(id);
         if (!existing) {
-            throw new customErrors.SectorNotFoundError('Event category not found');
+            throw new customErrors.EventCategoryNotFoundError('Event category not found');
         }
 
         const nameExists = await EventCategoryRepository.getByName(data.name);
         if (nameExists && nameExists.id !== id) {
-            throw new customErrors.ConflictError('Sector name already in use');
+            throw new customErrors.ConflictError('Event category name already in use');
         }
 
         return await EventCategoryRepository.update(id, data);

@@ -38,6 +38,10 @@ class EventCategory {
 
             return ApiResponse.success(res, category);
         } catch (error) {
+            if (error instanceof customErrors.ConflictError) {
+                return ApiResponse.error(res, error.message, 'EVENTS_CATEGORY_CONFLICT', 409, error);
+            }
+
             return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }
@@ -53,6 +57,9 @@ class EventCategory {
         } catch (error) {
             if (error instanceof customErrors.EventCategoryNotFoundError) {
                 return ApiResponse.notFound(res, error.message, 'EVENTS_CATEGORY_NOT_FOUND');
+            }
+            if (error instanceof customErrors.ConflictError) {
+                return ApiResponse.error(res, error.message, 'EVENTS_CATEGORY_CONFLICT', 409, error);
             }
 
             return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
