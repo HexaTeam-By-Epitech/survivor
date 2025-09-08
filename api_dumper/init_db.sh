@@ -4,7 +4,7 @@ set -euo pipefail
 # --- Config ---
 DB_NAME="incubator"
 DB_USER="incubator_user"
-DB_PASS=$(openssl rand -base64 12)
+DB_PASS=$(openssl rand -base64 12 | tr -d '/:@')
 SQL_SCHEMA=$(find /home/ -type f -name "jeb-incubator-db.sql" 2>/dev/null | head -n 1 || echo "")
 echo "Initialisation de la base de données PostgreSQL... Via le schéma : $SQL_SCHEMA"
 
@@ -62,9 +62,9 @@ ENV_FILE=".env"
 [ ! -f "$ENV_FILE" ] && touch "$ENV_FILE"
 
 # Supprime les anciennes variables PostgreSQL si elles existent
-sed -i '/^DB_NAME=/d;/^DB_USER=/d;/^DB_PASSWORD=/d;/^DB_HOST=/d;/^DB_PORT=/d' "$ENV_FILE"
+sed -i '/^DB_NAME=/d;/^DB_USER=/d;/^DB_PASSWORD=/d;/^DB_HOST=/d;/^DB_PORT=/d;/^DATABASE_URL=/d' "$ENV_FILE"
 DB_PORT=5432
-DB_HOST=localhost
+DB_HOST=172.17.0.1
 
 # Ajoute les nouvelles
 cat >> "$ENV_FILE" <<EOF
@@ -75,6 +75,9 @@ DB_HOST=$DB_HOST
 DB_PORT=$DB_PORT
 DATABASE_URL="postgresql://$DB_USER:$DB_PASS@$DB_HOST:$DB_PORT/$DB_NAME"
 EOF
+
+# Copier le .env dans le root du projet pour le docker compose
+cp "$ENV_FILE" ../$ENV_FILE
 
 # I want to search for the backend dir in the survivor project, then mv the .env file there
 BACKEND_DIR=$(find ../.. -type d -name "backend" 2>/dev/null | head -n 1 || echo "")
