@@ -38,10 +38,6 @@ class News {
 
             return ApiResponse.success(res, news);
         } catch (error) {
-            if (error instanceof customErrors.NewsNotFoundError) {
-                return ApiResponse.notFound(res, error.message, 'NEWS_NOT_FOUND');
-            }
-
             return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }

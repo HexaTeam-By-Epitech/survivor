@@ -39,14 +39,13 @@ class News {
         });
     }
 
-    static async create({ company_id, title, description, location, date }) {
+    static async create({ company_id, title, description, location }) {
         return prisma.news.create({
             data: {
                 company_id,
                 title,
                 description,
                 location,
-                date,
                 created_at: new Date()
             }
         });
