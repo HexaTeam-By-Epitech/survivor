@@ -927,6 +927,141 @@ paths:
         '500':
           description: Internal server error
 
+  /partner-types:
+    get:
+      summary: Get all partner types
+      tags:
+        - PartnerTypes
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of partner types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PartnerType'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new partner type
+      tags:
+        - PartnerTypes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerTypeCreateRequest'
+      responses:
+        '201':
+          description: Partner type created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerType'
+        '409':
+          description: Conflict - name already exists
+        '500':
+          description: Internal server error
+
+  /partner-types/{id}:
+    get:
+      summary: Get a partner type by ID
+      tags:
+        - PartnerTypes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Partner type found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerType'
+        '404':
+          description: Partner type not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update a partner type by ID
+      tags:
+        - PartnerTypes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerTypeUpdateRequest'
+      responses:
+        '200':
+          description: Partner type updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerType'
+        '404':
+          description: Partner type not found
+        '409':
+          description: Conflict - name already exists
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a partner type by ID
+      tags:
+        - PartnerTypes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Partner type deleted successfully
+        '404':
+          description: Partner type not found
+        '500':
+          description: Internal server error
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1362,6 +1497,43 @@ components:
           nullable: true
 
     EventCategoryUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    PartnerType:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PartnerTypeCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    PartnerTypeUpdateRequest:
       type: object
       properties:
         name:

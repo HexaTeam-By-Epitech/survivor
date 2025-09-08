@@ -26,6 +26,7 @@ app.use('/events', require('@routes/event'));
 app.use('/news', require('@routes/news'));
 app.use('/sectors', require('@routes/sector'));
 app.use('/event-categories', require('@routes/eventCategory'));
+app.use('/partner-types', require('@routes/partnerType'));
 
 app.get('/', (req, res) => {
     res.send('Hello World !');
