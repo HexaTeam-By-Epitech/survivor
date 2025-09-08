@@ -70,6 +70,15 @@ class SectorNotFoundError extends Error {
     }
 }
 
+// --- EventCategory errors ---
+
+class EventCategoryNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'EventCategoryNotFoundError';
+    }
+}
+
 // --- conflict errors ---
 
 class ConflictError extends Error {
@@ -88,5 +97,6 @@ module.exports = {
     EventNotFoundError,
     NewsNotFoundError,
     SectorNotFoundError,
+    EventCategoryNotFoundError,
     ConflictError
 }
