@@ -61,6 +61,15 @@ class NewsNotFoundError extends Error {
     }
 }
 
+// --- Sector errors ---
+
+class SectorNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'SectorNotFoundError';
+    }
+}
+
 // --- conflict errors ---
 
 class ConflictError extends Error {
@@ -78,5 +87,6 @@ module.exports = {
     ProjectNotFoundError,
     EventNotFoundError,
     NewsNotFoundError,
+    SectorNotFoundError,
     ConflictError
 }
