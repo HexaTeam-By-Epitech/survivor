@@ -28,6 +28,7 @@ app.use('/sectors', require('@routes/sector'));
 app.use('/event-categories', require('@routes/eventCategory'));
 app.use('/partner-types', require('@routes/partnerType'));
 app.use('/social-medias', require('@routes/socialMedia'));
+app.use('/investment-focus', require('@routes/investmentFocus'));
 
 app.get('/', (req, res) => {
     res.send('Hello World !');

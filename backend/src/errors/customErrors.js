@@ -97,6 +97,15 @@ class SocialMediaNotFoundError extends Error {
     }
 }
 
+// --- Investment focus errors ---
+
+class InvestmentFocusNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'InvestmentFocusNotFoundError';
+    }
+}
+
 // --- conflict errors ---
 
 class ConflictError extends Error {
@@ -118,5 +127,6 @@ module.exports = {
     EventCategoryNotFoundError,
     PartnerTypeNotFoundError,
     SocialMediaNotFoundError,
+    InvestmentFocusNotFoundError,
     ConflictError
 }
