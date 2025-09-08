@@ -88,6 +88,15 @@ class PartnerTypeNotFoundError extends Error {
     }
 }
 
+// --- SocialMedia errors ---
+
+class SocialMediaNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'SocialMediaNotFoundError';
+    }
+}
+
 // --- conflict errors ---
 
 class ConflictError extends Error {
@@ -108,5 +117,6 @@ module.exports = {
     SectorNotFoundError,
     EventCategoryNotFoundError,
     PartnerTypeNotFoundError,
+    SocialMediaNotFoundError,
     ConflictError
 }
