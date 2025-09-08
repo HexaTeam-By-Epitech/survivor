@@ -4,7 +4,7 @@ class ProjectController {
     static async getAllProjects(req, res) {
         try {
             const projects = await ProjectService.getAllProjects();
-            return res.json(projects);
+            return res.json({ data: projects });
         } catch (error) {
             console.log(error);
             return res.status(500).json({ error: 'Internal server error' });
@@ -16,7 +16,7 @@ class ProjectController {
             const { id } = req.params;
             const project = await ProjectService.getProjectById(Number(id));
             if (!project) return res.status(404).json({ error: 'Project not found' });
-            return res.json(project);
+            return res.json({ data: project });
         } catch (error) {
             void error;
             return res.status(500).json({ error: 'Internal server error' });
@@ -26,7 +26,7 @@ class ProjectController {
     static async createProject(req, res) {
         try {
             const project = await ProjectService.createProject(req.body);
-            return res.status(201).json(project);
+            return res.status(201).json({ data: project });
         } catch (error) {
             return res.status(400).json({ error: error.message });
         }
@@ -37,7 +37,7 @@ class ProjectController {
             const { id } = req.params;
             const updated = await ProjectService.updateProject(Number(id), req.body);
             if (!updated) return res.status(404).json({ error: 'Project not found' });
-            return res.json(updated);
+            return res.json({ data: updated });
         } catch (error) {
             return res.status(400).json({ error: error.message });
         }

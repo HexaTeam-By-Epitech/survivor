@@ -15,6 +15,12 @@ class StartupRepository {
                     include: {
                         Accounts: true
                     }
+                },
+                Projects: {
+                    include: {
+                        ProjectStatus: true,
+                        Sectors: true
+                    }
                 }
             }
         });
@@ -31,6 +37,12 @@ class StartupRepository {
                 Companies: {
                     include: {
                         Accounts: true
+                    }
+                },
+                Projects: {
+                    include: {
+                        ProjectStatus: true,
+                        Sectors: true
                     }
                 }
             }

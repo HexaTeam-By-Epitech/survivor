@@ -4,7 +4,7 @@ class UserController {
     static async getAllUsers(req, res) {
         try {
             const users = await UserService.getAllUsers();
-            return res.json(users);
+            return res.json({ data: users });
         } catch (error) {
             console.log(error);
             return res.status(500).json({ error: 'Internal server error' });
@@ -16,7 +16,7 @@ class UserController {
             const { id } = req.params;
             const user = await UserService.getUserById(Number(id));
             if (!user) return res.status(404).json({ error: 'User not found' });
-            return res.json(user);
+            return res.json({ data: user });
         } catch (error) {
             void error;
             return res.status(500).json({ error: 'Internal server error' });
@@ -27,7 +27,7 @@ class UserController {
         try {
             console.log(req.body);
             const user = await UserService.createUser(req.body);
-            return res.status(201).json(user);
+            return res.status(201).json({ data: user });
         } catch (error) {
             return res.status(400).json({ error: error.message });
         }
@@ -38,7 +38,7 @@ class UserController {
             const { id } = req.params;
             const updated = await UserService.updateUser(Number(id), req.body);
             if (!updated) return res.status(404).json({ error: 'User not found' });
-            return res.json(updated);
+            return res.json({ data: updated });
         } catch (error) {
             return res.status(400).json({ error: error.message });
         }
