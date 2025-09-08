@@ -10,4 +10,15 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     },
   },
+  server: {
+    host: true, // Allow access from Docker network
+    port: 4240,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:4242', // Use localhost for development
+        changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 });

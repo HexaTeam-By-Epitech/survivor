@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from '@/pages/HomePage.vue';
 import DiscoverPage from '@/pages/DiscoverPage.vue';
-import SearchPage from '@/pages/SearchPage.vue';
+import EventsPage from '@/pages/EventsPage.vue';
 import ProfilePage from '@/pages/ProfilePage.vue';
 
 const router = createRouter({
@@ -20,15 +20,15 @@ const router = createRouter({
       name: 'discover',
       component: DiscoverPage,
       meta: {
-        title: 'Discover Companies | JEB Incubator'
+        title: 'Discover | JEB Incubator'
       }
     },
     {
-      path: '/search',
-      name: 'search',
-      component: SearchPage,
+      path: '/events',
+      name: 'events',
+      component: EventsPage,
       meta: {
-        title: 'Search | JEB Incubator'
+        title: 'Events | JEB Incubator'
       }
     },
     {

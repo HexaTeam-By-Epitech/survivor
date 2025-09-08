@@ -3,8 +3,8 @@ import NavItem from '@/components/molecules/NavItem.vue';
 
 const navItems = [
   { name: 'Home', path: '/', icon: 'home' },
-  { name: 'Search', path: '/search', icon: 'search' },
-  { name: 'Discover', path: '/discover', icon: 'discover' },
+  { name: 'Discover', path: '/discover', icon: 'search' },
+  { name: 'Events', path: '/events', icon: 'calendar' },
   { name: 'Profile', path: '/profile', icon: 'profile' }
 ];
 </script>

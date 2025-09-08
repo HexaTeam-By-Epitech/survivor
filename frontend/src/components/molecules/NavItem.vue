@@ -53,7 +53,7 @@ const isActive = computed(() => route.path === props.path);
 }
 
 .nav-item:hover {
-  color: var(--color-text-high);
+  color: var(--color-primary-400);
   background: var(--color-surface-2);
 }
 

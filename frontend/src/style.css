@@ -5,7 +5,7 @@
 
   color-scheme: dark;
   color: var(--color-text-high);
-  background-color: var(--color-bg);
+  background: var(--gradient-custom);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -28,6 +28,7 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background: var(--gradient-custom);
 }
 
 h1 {

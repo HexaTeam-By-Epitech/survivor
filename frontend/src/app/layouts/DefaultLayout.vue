@@ -28,7 +28,7 @@ const isMobile = useMediaQuery('(max-width: 639px)');
 <style scoped>
 .layout {
   min-height: 100vh;
-  background: var(--color-bg);
+  background: var(--gradient-custom);
 }
 
 .layout__main {

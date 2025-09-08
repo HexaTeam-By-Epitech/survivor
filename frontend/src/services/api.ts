@@ -17,7 +17,7 @@ import type {
 } from '@/types/company';
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:4242'; // Backend server URL
+const API_BASE_URL = '/api'; // Use Vite proxy for all requests
 
 // API Client class
 class ApiClient {

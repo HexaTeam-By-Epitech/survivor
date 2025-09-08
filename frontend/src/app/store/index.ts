@@ -27,6 +27,11 @@ export const useAppStore = defineStore('app', () => {
   const news = ref<News[]>([]);
   const users = ref<User[]>([]);
   
+  // Authentication state
+  const user = ref<User | null>(null);
+  const isAuthenticated = ref(false);
+  const authToken = ref<string | null>(null);
+  
   // Reference data
   const sectors = ref<Sector[]>([]);
   const legalStatuses = ref<LegalStatus[]>([]);
@@ -46,6 +51,7 @@ export const useAppStore = defineStore('app', () => {
     news: false,
     users: false,
     reference: false,
+    auth: false,
   });
   
   // Error states
@@ -57,6 +63,7 @@ export const useAppStore = defineStore('app', () => {
     news: null as string | null,
     users: null as string | null,
     reference: null as string | null,
+    auth: null as string | null,
   });
   
   // Search functionality
@@ -74,6 +81,17 @@ export const useAppStore = defineStore('app', () => {
       startup.Companies?.description?.toLowerCase().includes(query) ||
       startup.website_url?.toLowerCase().includes(query)
     );
+  });
+
+  // Authentication computed
+  const isAdmin = computed(() => {
+    // Pour l'instant, on simule en vérifiant l'email ou un flag
+    return user.value?.account?.email?.includes('admin') || false;
+  });
+
+  const isFounder = computed(() => {
+    // Pour l'instant, on simule en vérifiant si l'utilisateur est connecté
+    return isAuthenticated.value && !isAdmin.value;
   });
 
   // For backwards compatibility, map startups to companies format
@@ -271,6 +289,70 @@ export const useAppStore = defineStore('app', () => {
     }
   };
 
+  // Authentication actions
+  const login = async (email: string, password: string) => {
+    loading.value.auth = true;
+    errors.value.auth = null;
+    
+    try {
+      // Pour l'instant, on simule une connexion
+      if (email && password) {
+        user.value = {
+          id: 1,
+          account_id: 1,
+          account: {
+            id: 1,
+            name: email.includes('admin') ? 'Admin User' : 'Regular User',
+            email: email,
+            created_at: new Date().toISOString(),
+            last_updated_at: new Date().toISOString(),
+          }
+        };
+        isAuthenticated.value = true;
+        authToken.value = 'fake-token-' + Date.now();
+        
+        // Stocker dans localStorage pour persistence
+        localStorage.setItem('auth_token', authToken.value);
+        localStorage.setItem('user', JSON.stringify(user.value));
+        
+        return { success: true };
+      } else {
+        throw new Error('Email and password are required');
+      }
+    } catch (error) {
+      errors.value.auth = error instanceof Error ? error.message : 'Login failed';
+      return { success: false, error: errors.value.auth };
+    } finally {
+      loading.value.auth = false;
+    }
+  };
+
+  const logout = () => {
+    user.value = null;
+    isAuthenticated.value = false;
+    authToken.value = null;
+    
+    // Nettoyer localStorage
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+  };
+
+  const checkAuthStatus = () => {
+    const token = localStorage.getItem('auth_token');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      try {
+        user.value = JSON.parse(userData);
+        authToken.value = token;
+        isAuthenticated.value = true;
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        logout();
+      }
+    }
+  };
+
   return {
     // State
     startups,
@@ -293,10 +375,17 @@ export const useAppStore = defineStore('app', () => {
     currentPage,
     itemsPerPage,
     
+    // Authentication state
+    user,
+    isAuthenticated,
+    authToken,
+    
     // Computed
     filteredStartups,
     companies,
     filteredCompanies,
+    isAdmin,
+    isFounder,
     
     // Actions
     setSearchQuery,
@@ -309,5 +398,10 @@ export const useAppStore = defineStore('app', () => {
     fetchUsers,
     fetchReferenceData,
     initializeApp,
+    
+    // Authentication actions
+    login,
+    logout,
+    checkAuthStatus,
   };
 });

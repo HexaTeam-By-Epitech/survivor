@@ -31,9 +31,9 @@ export interface Startup {
   website_url?: string;
   // Joined company data (Backend returns "Companies" capitalized)
   Companies: Company;
-  // Related data
+  // Related data (Prisma returns capitalized field names)
   founders?: StartupFounder[];
-  projects?: Project[];
+  Projects?: Project[];  // Changed from 'projects' to 'Projects' to match Prisma
 }
 
 // Partner interface extending Company

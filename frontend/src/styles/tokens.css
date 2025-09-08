@@ -123,6 +123,9 @@
   --gradient-hero: linear-gradient(135deg, var(--color-light-coral-500) 0%, var(--color-lavender-500) 100%);
   --gradient-surface: linear-gradient(135deg, var(--color-mauve-100) 0%, var(--color-lavender-2-100) 100%);
   --gradient-accent: linear-gradient(135deg, var(--color-tea-rose-500) 0%, var(--color-pale-purple-500) 100%);
+  
+  /* Custom gradient - coral to lavender */
+  --gradient-custom: linear-gradient(180deg, var(--color-light-coral-500) 0%, var(--color-tea-rose-500) 53%, var(--color-mauve-500) 100%);
 
   /* Text colors */
   --color-text-high: var(--color-pale-purple-900);

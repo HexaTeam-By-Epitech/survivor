@@ -31,8 +31,8 @@ const tags = computed(() => {
   
   if (props.startup) {
     tagList.push('Startup');
-    if (props.startup.projects?.length) {
-      tagList.push(`${props.startup.projects.length} Projects`);
+    if (props.startup.Projects?.length) {
+      tagList.push(`${props.startup.Projects.length} Projects`);
     }
   }
   
