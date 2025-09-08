@@ -79,6 +79,15 @@ class EventCategoryNotFoundError extends Error {
     }
 }
 
+// --- PartnerType errors ---
+
+class PartnerTypeNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'PartnerTypeNotFoundError';
+    }
+}
+
 // --- conflict errors ---
 
 class ConflictError extends Error {
@@ -98,5 +107,6 @@ module.exports = {
     NewsNotFoundError,
     SectorNotFoundError,
     EventCategoryNotFoundError,
+    PartnerTypeNotFoundError,
     ConflictError
 }
