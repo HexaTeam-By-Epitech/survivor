@@ -23,11 +23,6 @@ class SocialMedia {
     }
 
     static async create(data) {
-        const existing = await SocialMediaRepository.getByName(data.name);
-        if (existing) {
-            throw new customErrors.ConflictError('Social media name already in use');
-        }
-
         return SocialMediaRepository.create(data);
     }
 

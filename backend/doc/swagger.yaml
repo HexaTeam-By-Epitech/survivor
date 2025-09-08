@@ -1115,7 +1115,7 @@ paths:
             schema:
               $ref: '#/components/schemas/SocialMediaCreateRequest'
       responses:
-        '201':
+        '200':
           description: Social media created
           content:
             application/json:
@@ -1186,7 +1186,7 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        '200':
           description: Deleted successfully
         '404':
           description: Not found
