@@ -538,6 +538,133 @@ paths:
         '500':
           description: Internal server error
 
+  /news:
+    get:
+      summary: Get all news
+      tags:
+        - News
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of news
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/News'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a news item
+      tags:
+        - News
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewsCreateRequest'
+      responses:
+        '201':
+          description: News created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/News'
+        '400':
+          description: Bad request
+
+  /news/{id}:
+    get:
+      summary: Get a news item by ID
+      tags:
+        - News
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: News found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/News'
+        '404':
+          description: News not found
+
+    put:
+      summary: Update a news item by ID
+      tags:
+        - News
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewsUpdateRequest'
+      responses:
+        '200':
+          description: News updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/News'
+        '400':
+          description: Bad request
+        '404':
+          description: News not found
+
+    delete:
+      summary: Delete a news item by ID
+      tags:
+        - News
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: News deleted successfully
+        '404':
+          description: News not found
+
 components:
   securitySchemes:
     bearerAuth:
@@ -842,5 +969,58 @@ components:
           type: string
           format: date-time
         end_date:
+          type: string
+          format: date-time
+
+    News:
+      type: object
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        date:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    NewsCreateRequest:
+      type: object
+      required:
+        - company_id
+        - title
+        - description
+        - date
+      properties:
+        company_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        date:
+          type: string
+          format: date-time
+
+    NewsUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        date:
           type: string
           format: date-time

@@ -52,6 +52,15 @@ class EventNotFoundError extends Error {
     }
 }
 
+// --- News errors ---
+
+class NewsNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'NewsNotFoundError';
+    }
+}
+
 // --- conflict errors ---
 
 class ConflictError extends Error {
@@ -68,5 +77,6 @@ module.exports = {
     StartupNotFoundError,
     ProjectNotFoundError,
     EventNotFoundError,
+    NewsNotFoundError,
     ConflictError
 }

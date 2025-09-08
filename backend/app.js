@@ -22,6 +22,8 @@ app.use('/users', require('@routes/user'));
 app.use('/projects', require('@routes/project'));
 app.use('/auth', require('@routes/auth'));
 app.use('/startups', require('@routes/startup'));
+app.use('/events', require('@routes/event'));
+app.use('/news', require('@routes/news'));
 
 app.get('/', (req, res) => {
     res.send('Hello World !');
