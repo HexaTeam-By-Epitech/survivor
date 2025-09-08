@@ -4,14 +4,16 @@ WORKDIR /server
 
 RUN apk update && apk add nodejs npm
 
-COPY ./backend/package.json ./
+# Copy package.json first for better caching
+COPY ./backend/package.json ./package.json
+RUN npm install
+
+# Copy the rest of the backend files (node_modules excluded by .dockerignore)
 COPY ./backend ./
 
-RUN ls -aR
-RUN npm install
+# Generate Prisma client
+RUN npx prisma generate
 
 EXPOSE 4242
 
-# Remove already existing node_modules dir
-RUN [ -d "node_modules" ] && rm -rf node_modules
-ENTRYPOINT ["node", "app.js"]
+ENTRYPOINT ["npm", "start"]

@@ -1,0 +1,197 @@
+:root {
+  /* New Coolors Palette - Light coral to Lavender spectrum */
+  
+  /* Light coral variations */
+  --color-light-coral-100: #430808;
+  --color-light-coral-200: #851010;
+  --color-light-coral-300: #c81717;
+  --color-light-coral-400: #e94141;
+  --color-light-coral-500: #f18585;
+  --color-light-coral-600: #f39c9c;
+  --color-light-coral-700: #f6b5b5;
+  --color-light-coral-800: #f9cece;
+  --color-light-coral-900: #fce6e6;
+
+  /* Salmon pink variations */
+  --color-salmon-pink-100: #480808;
+  --color-salmon-pink-200: #8f1010;
+  --color-salmon-pink-300: #d71818;
+  --color-salmon-pink-400: #ec5252;
+  --color-salmon-pink-500: #f49c9c;
+  --color-salmon-pink-600: #f6aeae;
+  --color-salmon-pink-700: #f8c2c2;
+  --color-salmon-pink-800: #fbd7d7;
+  --color-salmon-pink-900: #fdebeb;
+
+  /* Melon variations */
+  --color-melon-100: #4b0808;
+  --color-melon-200: #971111;
+  --color-melon-300: #e21919;
+  --color-melon-400: #ed6161;
+  --color-melon-500: #f6aeae;
+  --color-melon-600: #f8bdbd;
+  --color-melon-700: #f9cdcd;
+  --color-melon-800: #fbdede;
+  --color-melon-900: #fdeeee;
+
+  /* Tea rose variations */
+  --color-tea-rose-100: #4f0a12;
+  --color-tea-rose-200: #9f1525;
+  --color-tea-rose-300: #e32a40;
+  --color-tea-rose-400: #ee7987;
+  --color-tea-rose-500: #f8cacf;
+  --color-tea-rose-600: #f9d4d8;
+  --color-tea-rose-700: #fbdfe2;
+  --color-tea-rose-800: #fce9ec;
+  --color-tea-rose-900: #fef4f5;
+
+  /* Pale purple variations */
+  --color-pale-purple-100: #3a0855;
+  --color-pale-purple-200: #7410aa;
+  --color-pale-purple-300: #a82beb;
+  --color-pale-purple-400: #cb80f3;
+  --color-pale-purple-500: #eed5fb;
+  --color-pale-purple-600: #f1ddfc;
+  --color-pale-purple-700: #f5e6fd;
+  --color-pale-purple-800: #f8eefd;
+  --color-pale-purple-900: #fcf7fe;
+
+  /* Mauve variations */
+  --color-mauve-100: #37084f;
+  --color-mauve-200: #6d119f;
+  --color-mauve-300: #a220e8;
+  --color-mauve-400: #c36ff0;
+  --color-mauve-500: #e4bef8;
+  --color-mauve-600: #e9cbfa;
+  --color-mauve-700: #efd8fb;
+  --color-mauve-800: #f4e5fc;
+  --color-mauve-900: #faf2fe;
+
+  /* Mauve secondary variations */
+  --color-mauve-2-100: #2f0b47;
+  --color-mauve-2-200: #5e158e;
+  --color-mauve-2-300: #8d20d5;
+  --color-mauve-2-400: #b15fe7;
+  --color-mauve-2-500: #d5a8f2;
+  --color-mauve-2-600: #dcb8f4;
+  --color-mauve-2-700: #e5caf7;
+  --color-mauve-2-800: #eedcfa;
+  --color-mauve-2-900: #f6edfc;
+
+  /* Lavender floral variations */
+  --color-lavender-100: #2c0844;
+  --color-lavender-200: #581188;
+  --color-lavender-300: #8519cc;
+  --color-lavender-400: #a949e9;
+  --color-lavender-500: #cb90f1;
+  --color-lavender-600: #d4a4f4;
+  --color-lavender-700: #dfbbf7;
+  --color-lavender-800: #e9d2f9;
+  --color-lavender-900: #f4e8fc;
+
+  /* Lavender floral secondary variations */
+  --color-lavender-2-100: #2b0641;
+  --color-lavender-2-200: #550c83;
+  --color-lavender-2-300: #8012c4;
+  --color-lavender-2-400: #a532ec;
+  --color-lavender-2-500: #c174f2;
+  --color-lavender-2-600: #ce8ff5;
+  --color-lavender-2-700: #daabf7;
+  --color-lavender-2-800: #e6c7fa;
+  --color-lavender-2-900: #f3e3fc;
+
+  /* Semantic color mappings */
+  --color-bg: var(--color-lavender-2-100);
+  --color-surface: var(--color-lavender-100);
+  --color-surface-2: var(--color-mauve-2-100);
+
+  /* Primary colors (lavender spectrum) */
+  --color-primary-300: var(--color-lavender-700);
+  --color-primary-400: var(--color-lavender-600);
+  --color-primary-500: var(--color-lavender-500);
+  --color-primary-600: var(--color-lavender-400);
+  --color-primary-700: var(--color-lavender-300);
+
+  /* Accent colors (coral to pink spectrum) */
+  --color-accent-300: var(--color-salmon-pink-700);
+  --color-accent-400: var(--color-salmon-pink-600);
+  --color-accent-500: var(--color-salmon-pink-500);
+  --color-accent-600: var(--color-light-coral-500);
+  --color-accent-700: var(--color-light-coral-400);
+
+  /* Gradients using new palette */
+  --gradient-hero: linear-gradient(135deg, var(--color-light-coral-500) 0%, var(--color-lavender-500) 100%);
+  --gradient-surface: linear-gradient(135deg, var(--color-mauve-100) 0%, var(--color-lavender-2-100) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--color-tea-rose-500) 0%, var(--color-pale-purple-500) 100%);
+
+  /* Text colors */
+  --color-text-high: var(--color-pale-purple-900);
+  --color-text-medium: var(--color-pale-purple-800);
+  --color-text-muted: var(--color-pale-purple-700);
+
+  /* Status colors */
+  --color-success: var(--color-tea-rose-400);
+  --color-warning: var(--color-salmon-pink-400);
+  --color-danger: var(--color-light-coral-400);
+
+  /* Bordures, focus, ombres */
+  --color-border: var(--color-mauve-2-300);
+  --focus-ring: 0 0 0 3px rgba(203, 144, 241, 0.35);
+
+  /* Rayons, espaces, tailles */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  --shadow-1: 0 6px 24px rgba(0, 0, 0, 0.18);
+  --shadow-2: 0 10px 40px rgba(0, 0, 0, 0.28);
+
+  /* Typo */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", "Roboto", "Arial", sans-serif;
+  --fs-xs: 12px;
+  --fs-sm: 14px;
+  --fs-md: 16px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-2xl: 28px;
+  --fs-3xl: 36px;
+  --lh-tight: 1.15;
+  --lh-base: 1.5;
+
+  /* Z-index */
+  --z-nav: 100;
+  --z-dialog: 1000;
+  --z-toast: 1100;
+
+  /* Breakpoints (for JS usage) */
+  --bp-mobile: 640px;
+  --bp-tablet: 1024px;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 639px) {
+  :root {
+    --nav-type: "bottom";
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  :root {
+    --nav-type: "side";
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --nav-type: "top";
+  }
+}

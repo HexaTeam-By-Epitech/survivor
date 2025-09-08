@@ -4,6 +4,9 @@ services:
       context: .
       dockerfile: ./docker/Dockerfile.server
     container_name: survivor-server
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      NODE_ENV: production
     ports:
       - "4242:4242"
     networks:
@@ -20,7 +23,7 @@ services:
     networks:
       - survivor-app
     restart: "no"
-
+    
 networks:
   survivor-app:
     driver: bridge

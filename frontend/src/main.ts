@@ -1,11 +1,16 @@
-import './assets/main.css'
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import router from '@/app/router';
+import App from './App.vue';
 
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
+// Import global styles
+import '@/styles/tokens.css';
+import '@/styles/globals.css';
+import '@/styles/mixins.css';
 
-const app = createApp(App)
+const app = createApp(App);
 
-app.use(router)
+app.use(createPinia());
+app.use(router);
 
-app.mount('#app')
+app.mount('#app');

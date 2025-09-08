@@ -8,6 +8,7 @@ class StartupRepository {
     }
 
     static async findAll() {
+        console.log("Fetching all startups from the database");
         return prisma.startups.findMany({
             include: {
                 Companies: {
