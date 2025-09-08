@@ -665,6 +665,135 @@ paths:
         '404':
           description: News not found
 
+  /sectors:
+    get:
+      summary: Get all sectors
+      tags:
+        - Sectors
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of sectors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sector'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new sector
+      tags:
+        - Sectors
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SectorCreateRequest'
+      responses:
+        '201':
+          description: Sector created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+        '500':
+          description: Internal server error
+
+  /sectors/{id}:
+    get:
+      summary: Get a sector by ID
+      tags:
+        - Sectors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sector found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+        '404':
+          description: Sector not found
+
+    put:
+      summary: Update a sector by ID
+      tags:
+        - Sectors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SectorUpdateRequest'
+      responses:
+        '200':
+          description: Sector updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+        '404':
+          description: Sector not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a sector by ID
+      tags:
+        - Sectors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Sector deleted successfully
+        '404':
+          description: Sector not found
+        '500':
+          description: Internal server error
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1024,3 +1153,49 @@ components:
         date:
           type: string
           format: date-time
+
+    Sector:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique sector identifier
+        name:
+          type: string
+          description: Sector name
+        description:
+          type: string
+          nullable: true
+          description: Optional sector description
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp of creation
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+
+    SectorCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Sector name
+        description:
+          type: string
+          nullable: true
+          description: Optional sector description
+
+    SectorUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Sector name
+        description:
+          type: string
+          nullable: true
+          description: Optional sector description
