@@ -17,12 +17,16 @@ services:
       context: .
       dockerfile: ./docker/Dockerfile.initdb
     container_name: survivor-initdb
+    environment:
+      BASE_POSTGRES_PASSWORD: ${BASE_POSTGRES_PASSWORD}
     # profiles:
     #   - setupdb
     depends_on:
       - db
     networks:
       - survivor-app
+    volumes:
+      - shared-config:/initdb/shared
     restart: "no"
 
   server:
@@ -37,6 +41,8 @@ services:
       - initdb
     networks:
       - survivor-app
+    volumes:
+      - shared-config:/server/config
     restart: "no"
 
   client:
@@ -58,4 +64,6 @@ volumes:
   pgdata:
     driver: local
     name: pgdata
-
+  shared-config:
+    driver: local
+    name: shared-config

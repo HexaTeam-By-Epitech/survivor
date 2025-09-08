@@ -3,9 +3,10 @@ FROM alpine:3.22.1
 WORKDIR /initdb
 
 COPY ./api_dumper ./
+COPY ./db_schemes ./db_schemes
 
-RUN apk update && apk add libpq-dev python3 py3-pip
+RUN apk update && apk add libpq-dev postgresql-client python3 py3-pip openssl sudo
 
 RUN python3 -m venv venv && source venv/bin/activate && python3 -m pip install -r requirements.txt
 
-ENTRYPOINT ["source", "venv/bin/activate", "&&", "./"
+ENTRYPOINT ["/bin/sh", "-c", "source venv/bin/activate && ./init_db.sh"]
