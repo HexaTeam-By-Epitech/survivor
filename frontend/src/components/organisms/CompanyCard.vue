@@ -52,14 +52,14 @@ const heroImage = computed(() => {
     'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=800';
 });
 
-const isFeatureed = computed(() => props.variant === 'featured');
+const isFeatured = computed(() => props.variant === 'featured');
 </script>
 
 <template>
   <article 
     v-if="company"
     class="company-card card-base" 
-    :class="{ 'company-card--featured': isFeatureed }"
+    :class="{ 'company-card--featured': isFeatured }"
     role="article"
   >
     <div class="company-card__media gradient-overlay">
