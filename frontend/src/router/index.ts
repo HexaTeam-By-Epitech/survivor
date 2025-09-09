@@ -6,7 +6,7 @@ import ProjectsPage from '@/views/ProjectsView.vue'
 import NewsPage from '@/views/NewsView.vue'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(),
   routes: [
     {
       path: '/',
