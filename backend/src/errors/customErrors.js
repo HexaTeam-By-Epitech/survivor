@@ -106,6 +106,15 @@ class InvestmentFocusNotFoundError extends Error {
     }
 }
 
+// --- Legal status errors ---
+
+class LegalStatusNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'LegalStatusNotFoundError';
+    }
+}
+
 // --- conflict errors ---
 
 class ConflictError extends Error {
@@ -128,5 +137,6 @@ module.exports = {
     PartnerTypeNotFoundError,
     SocialMediaNotFoundError,
     InvestmentFocusNotFoundError,
+    LegalStatusNotFoundError,
     ConflictError
 }

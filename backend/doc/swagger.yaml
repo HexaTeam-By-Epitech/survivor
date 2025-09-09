@@ -1324,6 +1324,137 @@ paths:
         '500':
           description: Internal server error
 
+  /legal-status:
+    get:
+      summary: Get all legal status entries
+      tags:
+        - LegalStatus
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of legal status entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LegalStatus'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new legal status
+      tags:
+        - LegalStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegalStatusCreateRequest'
+      responses:
+        '201':
+          description: Legal status created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalStatus'
+        '409':
+          description: Conflict - name already exists
+        '500':
+          description: Internal server error
+
+  /legal-status/{id}:
+    get:
+      summary: Get legal status by ID
+      tags:
+        - LegalStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Legal status found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalStatus'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update a legal status by ID
+      tags:
+        - LegalStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegalStatusUpdateRequest'
+      responses:
+        '200':
+          description: Legal status updated
+        '404':
+          description: Not found
+        '409':
+          description: Conflict - name already in use
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete legal status by ID
+      tags:
+        - LegalStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Deleted successfully
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1862,6 +1993,34 @@ components:
           type: string
 
     InvestmentFocusUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    LegalStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    LegalStatusCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    LegalStatusUpdateRequest:
       type: object
       properties:
         name:
