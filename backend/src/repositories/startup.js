@@ -14,6 +14,12 @@ class Startup {
                     include: {
                         Accounts: true
                     }
+                },
+                Projects: {
+                    include: {
+                        ProjectStatus: true,
+                        Sectors: true
+                    }
                 }
             },
             orderBy: {
@@ -40,6 +46,12 @@ class Startup {
                 Companies: {
                     include: {
                         Accounts: true
+                    }
+                },
+                Projects: {
+                    include: {
+                        ProjectStatus: true,
+                        Sectors: true
                     }
                 }
             }

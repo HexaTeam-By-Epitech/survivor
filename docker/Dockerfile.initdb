@@ -5,8 +5,7 @@ WORKDIR /initdb
 COPY ./api_dumper ./
 COPY ./db_schemes ./db_schemes
 
-RUN apk update && apk add libpq-dev postgresql-client python3 py3-pip openssl sudo
+RUN apk update && apk add libpq-dev postgresql-client python3 py3-pip openssl gcc musl-dev python3-dev
+RUN python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
 
-RUN python3 -m venv venv && source venv/bin/activate && python3 -m pip install -r requirements.txt
-
-ENTRYPOINT ["/bin/sh", "-c", "source venv/bin/activate && ./init_db.sh"]
+ENTRYPOINT ["sh", "-c", "env $(cat .env | xargs) ./init_db.sh && cp shared/.env . && venv/bin/python3 ./api_dumper.py"]

@@ -4,11 +4,12 @@ set -euo pipefail
 # --- Config ---
 DB_NAME="incubator"
 DB_USER="incubator_user"
-DB_PASS=$(openssl rand -base64 12)
+DB_PASS=$(openssl rand -base64 12 | tr -d '/:@')
 
 # In Docker network, the database service is accessible via the service name
 DB_HOST="db"
 DB_PORT="5432"
+
 # Use the postgres default user and password from environment
 POSTGRES_USER="postgres"
 POSTGRES_PASSWORD="${BASE_POSTGRES_PASSWORD:-postgres}"
@@ -81,10 +82,11 @@ mkdir -p shared
 [ ! -f "$ENV_FILE" ] && touch "$ENV_FILE"
 
 # Supprime les anciennes variables PostgreSQL si elles existent
-sed -i '/^DB_NAME=/d;/^DB_USER=/d;/^DB_PASSWORD=/d;/^DB_HOST=/d;/^DB_PORT=/d' "$ENV_FILE"
+sed -i '/^DB_NAME=/d;/^DB_USER=/d;/^DB_PASSWORD=/d;/^DB_HOST=/d;/^DB_PORT=/d;/^DATABASE_URL=/d;/^API_KEY=/d;' "$ENV_FILE"
 
 # Ajoute les nouvelles
 cat >> "$ENV_FILE" <<EOF
+API_KEY=$API_KEY
 DB_NAME=$DB_NAME
 DB_USER=$DB_USER
 DB_PASSWORD=$DB_PASS
@@ -92,6 +94,9 @@ DB_HOST=$DB_HOST
 DB_PORT=$DB_PORT
 DATABASE_URL="postgresql://$DB_USER:$DB_PASS@$DB_HOST:$DB_PORT/$DB_NAME"
 EOF
+
+cp "$ENV_FILE" /.env
+# ls -lRa . | grep -v venv
 
 echo "✅ .env mis à jour avec les infos PostgreSQL.
 Random password généré pour l'utilisateur '$DB_USER' : trouvable dans '$ENV_FILE'."
