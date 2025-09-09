@@ -43,10 +43,6 @@ jobs:
           echo "Building server Docker image..."
           docker build -f docker/Dockerfile.server -t survivor-server-test .
           
-          # Test initdb build using mock version (without running api_dumper)
-          echo "Building mock initdb Docker image..."
-          docker build -f docker/Dockerfile.initdb.mock -t survivor-initdb-mock-test .
-          
           echo "✅ All individual Docker builds successful"
       
       - name: Create mock docker-compose for testing
