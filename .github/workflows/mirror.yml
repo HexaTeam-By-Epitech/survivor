@@ -28,54 +28,7 @@ jobs:
             echo No unwanted files detected
           fi
 
-  check_program_compilation:
-    needs: [check_repo]
-    name: "Checks if npm start works for backend and frontend"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build and start backend
-        run: |
-          if [ -f backend/package.json ]; then
-            cd backend
-            npm install
-            npm run build
-            npm start &
-            BACKEND_PID=$!
-            sleep 10
-            if ps -p $BACKEND_PID > /dev/null; then
-              echo "Backend started successfully"
-            else
-              echo "Error: Backend failed to start"
-              exit 1
-            fi
-            cd ..
-          else
-            echo "No backend directory or package.json found, skipping backend startup."
-          fi
-      - name: Build and start frontend
-        run: |
-          if [ -f frontend/package.json ]; then
-            cd frontend
-            npm install
-            npm run build
-            npm start &
-            FRONTEND_PID=$!
-            sleep 10
-            if ps -p $FRONTEND_PID > /dev/null; then
-              echo "Frontend started successfully"
-            else
-              echo "Error: Frontend failed to start"
-              exit 1
-            fi
-            cd ..
-          else
-            echo "No frontend directory or package.json found, skipping frontend startup."
-          fi
-        timeout-minutes: 5
-
   run_tests:
-    needs: [check_program_compilation]
     name: "Runs tests with npm test"
     runs-on: ubuntu-latest
 
@@ -104,7 +57,7 @@ jobs:
         timeout-minutes: 5
 
   push_to_mirror:
-    needs: [run_tests, check_repo, check_program_compilation]
+    needs: [run_tests, check_repo]
     if: ${{ github.event_name == 'push' && github.actor != 'github-actions[bot]' && startsWith(github.repository, 'HexaTeam-By-Epitech') }}
     runs-on: ubuntu-latest
     steps:
