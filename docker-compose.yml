@@ -1,4 +1,32 @@
 services:
+  db:
+    image: postgres:17-alpine3.22
+    container_name: survivor-db
+    environment:
+      POSTGRES_PASSWORD: ${BASE_POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    networks:
+      - survivor-app
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: "no"
+
+  initdb:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.initdb
+    container_name: survivor-initdb
+    environment:
+      BASE_POSTGRES_PASSWORD: ${BASE_POSTGRES_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - survivor-app
+    volumes:
+      - shared-config:/initdb/shared
+    restart: "no"
+
   server:
     build:
       context: .
@@ -9,8 +37,13 @@ services:
       NODE_ENV: production
     ports:
       - "4242:4242"
+    depends_on:
+      - db
+      - initdb
     networks:
       - survivor-app
+    volumes:
+      - shared-config:/server/config
     restart: "no"
 
   client:
@@ -40,3 +73,11 @@ services:
 networks:
   survivor-app:
     driver: bridge
+
+volumes:
+  pgdata:
+    driver: local
+    name: pgdata
+  shared-config:
+    driver: local
+    name: shared-config

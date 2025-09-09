@@ -37,6 +37,14 @@ app.use('/users', require('@routes/user'));
 app.use('/projects', require('@routes/project'));
 app.use('/auth', require('@routes/auth'));
 app.use('/startups', require('@routes/startup'));
+app.use('/events', require('@routes/event'));
+app.use('/news', require('@routes/news'));
+app.use('/sectors', require('@routes/sector'));
+app.use('/event-categories', require('@routes/eventCategory'));
+app.use('/partner-types', require('@routes/partnerType'));
+app.use('/social-medias', require('@routes/socialMedia'));
+app.use('/investment-focus', require('@routes/investmentFocus'));
+app.use('/legal-status', require('@routes/legalStatus'));
 
 // Add missing routes with placeholder responses for now
 app.get('/events', (req, res) => {
@@ -80,13 +88,13 @@ app.get('/reference/investment-focus', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.send('Hello Otter World !');
+    res.send('Hello World !');
 });
 
 // Only start the server when this file is run directly
 if (require.main === module) {
     app.listen(PORT, () => {
-        console.log(`Minimal backend listening on port ${PORT}`);
+        console.log(`Backend listening on port ${PORT}`);
     });
 }
 

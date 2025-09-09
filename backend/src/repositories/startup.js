@@ -1,15 +1,14 @@
 const prisma = require("@config/prisma");
 
-class StartupRepository {
-    static async create({ company_id }) {
-        return prisma.startups.create({
-            data: { company_id }
-        });
+class Startup {
+    static countAll() {
+        return prisma.startups.count();
     }
 
-    static async findAll() {
-        console.log("Fetching all startups from the database");
+    static getAllPaginated({ skip, take }) {
         return prisma.startups.findMany({
+            skip,
+            take,
             include: {
                 Companies: {
                     include: {
@@ -22,15 +21,25 @@ class StartupRepository {
                         Sectors: true
                     }
                 }
+            },
+            orderBy: {
+                Companies: {
+                    Accounts: {
+                        created_at: 'asc'
+                    }
+                }
             }
+        });
+
+    }
+
+    static async create({ company_id }) {
+        return prisma.startups.create({
+            data: { company_id }
         });
     }
 
-    async findByEmail(email) {
-        return prisma.startups.findUnique({ where: { email } });
-    }
-
-    static async findById(id) {
+    static async getById(id) {
         return prisma.startups.findUnique({
             where: { id },
             include: {
@@ -63,16 +72,10 @@ class StartupRepository {
     }
 
     static async delete(id) {
-        // Supprime d'abord les relations StartupsFounders
-        await prisma.startupsFounders.deleteMany({
-            where: { startup_id: id }
-        });
-
-        // Supprime la startup
         return prisma.startups.delete({
             where: { id }
         });
     }
 }
 
-module.exports = StartupRepository;
+module.exports = Startup;

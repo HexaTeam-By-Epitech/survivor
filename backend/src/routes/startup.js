@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const StartupController = require("@controllers/startupController");
+const StartupController = require("@controllers/startup");
 
 router.get("/", StartupController.getAll);
 router.get("/:id", StartupController.getById);

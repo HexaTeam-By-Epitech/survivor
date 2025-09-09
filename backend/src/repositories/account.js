@@ -1,6 +1,6 @@
 const prisma = require('@config/prisma');
 
-class AccountRepository {
+class Account {
     static async create(data) {
         return prisma.accounts.create({
             data: {
@@ -31,4 +31,4 @@ class AccountRepository {
     }
 }
 
-module.exports = AccountRepository;
+module.exports = Account;

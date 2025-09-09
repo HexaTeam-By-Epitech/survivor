@@ -1,11 +1,10 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const AccountRepository = require("@repositories/accountRepository");
-const CompanyRepository = require("@repositories/companyRepository");
-const StartupRepository = require("@repositories/startupRepository");
-const StartupEntity = require("@entities/Startup");
+const AccountRepository = require("@repositories/account");
+const CompanyRepository = require("@repositories/company");
+const StartupRepository = require("@repositories/startup");
 
-class AuthService {
+class Auth {
     constructor() {
         this.startupRepo = new StartupRepository();
         this.jwtSecret = process.env.JWT_SECRET;
@@ -65,4 +64,4 @@ class AuthService {
     }
 }
 
-module.exports = AuthService;
+module.exports = Auth;
