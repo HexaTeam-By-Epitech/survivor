@@ -115,6 +115,15 @@ class LegalStatusNotFoundError extends Error {
     }
 }
 
+// --- Investor Type errors ---
+
+class InvestorTypeNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'InvestorTypeNotFoundError';
+    }
+}
+
 // --- conflict errors ---
 
 class ConflictError extends Error {
@@ -138,5 +147,6 @@ module.exports = {
     SocialMediaNotFoundError,
     InvestmentFocusNotFoundError,
     LegalStatusNotFoundError,
+    InvestorTypeNotFoundError,
     ConflictError
 }

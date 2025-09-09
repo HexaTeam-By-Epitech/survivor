@@ -1455,6 +1455,137 @@ paths:
         '500':
           description: Internal server error
 
+  /investor-types:
+    get:
+      summary: Get all investor types
+      tags:
+        - InvestorType
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of investor types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InvestorTypes'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new investor type
+      tags:
+        - InvestorType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvestorTypesCreateRequest'
+      responses:
+        '201':
+          description: Investor type created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestorTypes'
+        '409':
+          description: Conflict - name already exists
+        '500':
+          description: Internal server error
+
+  /investor-types/{id}:
+    get:
+      summary: Get investor type by ID
+      tags:
+        - InvestorType
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Investor type found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestorTypes'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update investor type by ID
+      tags:
+        - InvestorType
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvestorTypesUpdateRequest'
+      responses:
+        '200':
+          description: Investor type updated
+        '404':
+          description: Not found
+        '409':
+          description: Conflict - name already in use
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete investor type by ID
+      tags:
+        - InvestorType
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Deleted successfully
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2021,6 +2152,34 @@ components:
           type: string
 
     LegalStatusUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    InvestorTypes:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    InvestorTypesCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    InvestorTypesUpdateRequest:
       type: object
       properties:
         name:
