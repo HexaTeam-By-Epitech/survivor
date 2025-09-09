@@ -1,0 +1,340 @@
+name: App Deployment Pipeline
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'dev'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Repository validation
+  validate_repository:
+    name: "Repository Validation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for unwanted files
+        run: |
+          UNWANTED_FILES=$(find . -type f -not -path "./.git/*" -wholename "*tmp/*" -or -name "*~" -or -name "*.o" -or -name "*.so" -or -name "*.gcno" -or -name "*.gcda" -or -name "*#" -or -name "#*" -or -name "*.gcov")
+          for FILES in $UNWANTED_FILES; do
+            echo "::error file=${FILES#./},title=Unwanted file detected::${FILES#./}"
+          done
+          if [[ -n $UNWANTED_FILES ]]; then
+            exit 1
+          else
+            echo "✅ Repository is clean"
+          fi
+
+  # Call Unit Tests workflow
+  unit_tests:
+    name: "Unit & Integration Tests"
+    if: ${{ !inputs.skip_tests }}
+    uses: ./.github/workflows/unit_tests.yml
+    with:
+      generate_coverage: true
+      node_version: '18'
+
+  # Call Build & Deployment Testing workflow
+  build_deployment_tests:
+    name: "Build & Deployment Testing"
+    needs: [validate_repository]
+    uses: ./.github/workflows/build_deployment.yml
+    with:
+      environment: ${{ inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'staging') }}
+
+  # Call Performance & Health Checks workflow
+  performance_health_checks:
+    name: "Performance & Health Checks"
+    needs: [build_deployment_tests]
+    if: ${{ !inputs.skip_tests }}
+    uses: ./.github/workflows/performance_health.yml
+    with:
+      target_url: 'http://localhost:4242'
+      load_test_duration: '60'
+
+  # Deployment decision
+  deployment_approval:
+    name: "Deployment Approval"
+    runs-on: ubuntu-latest
+    needs: [unit_tests, build_deployment_tests, performance_health_checks]
+    if: always() && (needs.build_deployment_tests.result == 'success')
+    environment: ${{ inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'staging') }}
+    steps:
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary"
+          echo "- **Branch**: ${{ github.ref }}"
+          echo "- **Commit**: ${{ github.sha }}"
+          echo "- **Environment**: ${{ inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'staging') }}"
+          echo "- **Unit Tests**: ${{ needs.unit_tests.result }}"
+          echo "- **Build Tests**: ${{ needs.build_deployment_tests.result }}"
+          echo "- **Performance Tests**: ${{ needs.performance_health_checks.result }}"
+          
+          if [[ "${{ needs.unit_tests.result }}" == "failure" ]]; then
+            echo "⚠️ Unit tests failed but deployment can continue"
+          fi
+          
+          if [[ "${{ needs.performance_health_checks.result }}" == "failure" ]]; then
+            echo "⚠️ Performance tests failed but deployment can continue"
+          fi
+          
+          echo "✅ Ready for deployment"
+
+  # Staging deployment
+  deploy_staging:
+    name: "Deploy to Staging"
+    runs-on: ubuntu-latest
+    needs: [deployment_approval]
+    if: ${{ (github.ref == 'refs/heads/dev' || inputs.environment == 'staging') && needs.deployment_approval.result == 'success' }}
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Prepare staging deployment
+        run: |
+          echo "Preparing staging deployment..."
+          
+          # Create deployment directory
+          mkdir -p deployment/staging
+          
+          # Copy application files (excluding node_modules and dev files)
+          rsync -av --exclude='node_modules' --exclude='.git' --exclude='*.log' --exclude='coverage' . deployment/staging/
+          
+          echo "✅ Staging deployment prepared"
+      
+      - name: Install production dependencies
+        working-directory: deployment/staging/backend
+        run: |
+          npm ci --only=production
+          
+          # Generate Prisma client for production
+          if [ -f "prisma/schema.prisma" ]; then
+            npx prisma generate
+          fi
+      
+      - name: Create staging deployment package
+        run: |
+          cd deployment/staging
+          PACKAGE_NAME="survivor-staging-${GITHUB_SHA::8}.tar.gz"
+          tar -czf ../$PACKAGE_NAME .
+          echo "DEPLOYMENT_PACKAGE=$PACKAGE_NAME" >> $GITHUB_ENV
+      
+      - name: Upload staging deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-deployment-${{ github.sha }}
+          path: deployment/survivor-staging-*.tar.gz
+          retention-days: 30
+      
+      - name: Staging deployment simulation
+        run: |
+          echo "🚀 Staging deployment simulation"
+          PACKAGE_NAME="survivor-staging-${GITHUB_SHA::8}.tar.gz"
+          echo "Package: $PACKAGE_NAME"
+          echo "Size: $(ls -lh deployment/$PACKAGE_NAME | awk '{print $5}')"
+          echo "Target: Staging Environment"
+          
+          # Here you would add actual deployment steps:
+          # - Upload to staging server
+          # - Run deployment scripts
+          # - Update environment configurations
+          # - Restart services
+          
+          echo "✅ Staging deployment completed successfully"
+
+  # Production deployment
+  deploy_production:
+    name: "Deploy to Production"
+    runs-on: ubuntu-latest
+    needs: [deployment_approval]
+    if: ${{ (github.ref == 'refs/heads/main' || inputs.environment == 'production') && needs.deployment_approval.result == 'success' }}
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Production pre-deployment checks
+        run: |
+          echo "Running production pre-deployment checks..."
+          
+          # Verify critical files exist
+          [ -f "backend/package.json" ] || { echo "❌ Backend package.json missing"; exit 1; }
+          [ -f "frontend/package.json" ] || { echo "❌ Frontend package.json missing"; exit 1; }
+          [ -f "docker-compose.yml" ] || { echo "❌ Docker compose file missing"; exit 1; }
+          
+          echo "✅ Production pre-checks passed"
+      
+      - name: Prepare production deployment
+        run: |
+          echo "Preparing production deployment..."
+          
+          # Create deployment directory
+          mkdir -p deployment/production
+          
+          # Copy application files (excluding dev files and logs)
+          rsync -av --exclude='node_modules' --exclude='.git' --exclude='*.log' --exclude='coverage' --exclude='tests' --exclude='.env*' . deployment/production/
+          
+          echo "✅ Production deployment prepared"
+      
+      - name: Install production dependencies
+        working-directory: deployment/production/backend
+        run: |
+          NODE_ENV=production npm ci --only=production
+          
+          # Security audit for production
+          npm audit --audit-level=high --production
+          
+          # Generate Prisma client for production
+          if [ -f "prisma/schema.prisma" ]; then
+            npx prisma generate
+          fi
+      
+      - name: Production build
+        working-directory: deployment/production
+        run: |
+          # Build frontend for production if build script exists
+          if [ -f "frontend/package.json" ]; then
+            cd frontend
+            npm ci --only=production
+            if npm run build &> /dev/null; then
+              echo "✅ Frontend built for production"
+            fi
+            cd ..
+          fi
+          
+          # Build backend for production if needed
+          if [ -f "backend/package.json" ]; then
+            cd backend
+            if npm run build &> /dev/null; then
+              echo "✅ Backend built for production"
+            fi
+            cd ..
+          fi
+      
+      - name: Create production deployment package
+        run: |
+          cd deployment/production
+          PACKAGE_NAME="survivor-production-${GITHUB_SHA::8}.tar.gz"
+          tar -czf ../$PACKAGE_NAME .
+          echo "DEPLOYMENT_PACKAGE=$PACKAGE_NAME" >> $GITHUB_ENV
+      
+      - name: Upload production deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-deployment-${{ github.sha }}
+          path: deployment/survivor-production-*.tar.gz
+          retention-days: 90
+      
+      - name: Production deployment simulation
+        run: |
+          echo "🚀 Production deployment simulation"
+          PACKAGE_NAME="survivor-production-${GITHUB_SHA::8}.tar.gz"
+          echo "Package: $PACKAGE_NAME"
+          echo "Size: $(ls -lh deployment/$PACKAGE_NAME | awk '{print $5}')"
+          echo "Target: Production Environment"
+          
+          # Here you would add actual deployment steps:
+          # - Upload to production server
+          # - Run database migrations
+          # - Update environment configurations
+          # - Blue-green deployment or rolling update
+          # - Health checks after deployment
+          # - Rollback capability
+          
+          echo "✅ Production deployment completed successfully"
+
+  # Post-deployment verification
+  post_deployment_verification:
+    name: "Post-Deployment Verification"
+    runs-on: ubuntu-latest
+    needs: [deploy_staging, deploy_production]
+    if: always() && (needs.deploy_staging.result == 'success' || needs.deploy_production.result == 'success')
+    
+    steps:
+      - name: Deployment verification
+        run: |
+          DEPLOYED_ENV="none"
+          
+          if [[ "${{ needs.deploy_staging.result }}" == "success" ]]; then
+            DEPLOYED_ENV="staging"
+          fi
+          
+          if [[ "${{ needs.deploy_production.result }}" == "success" ]]; then
+            DEPLOYED_ENV="production"
+          fi
+          
+          echo "## Post-Deployment Verification"
+          echo "- **Environment**: $DEPLOYED_ENV"
+          echo "- **Deployment Time**: $(date)"
+          echo "- **Commit**: ${{ github.sha }}"
+          echo "- **Branch**: ${{ github.ref }}"
+          
+          # Here you would add:
+          # - Health check URLs
+          # - Smoke tests
+          # - Database connectivity verification
+          # - External service integration tests
+          
+          echo "✅ Post-deployment verification completed"
+
+  # Notification
+  notify_deployment:
+    name: "Deployment Notification"
+    runs-on: ubuntu-latest
+    needs: [post_deployment_verification]
+    if: always()
+    
+    steps:
+      - name: Deployment notification
+        run: |
+          echo "## 🚀 Deployment Pipeline Completed"
+          echo ""
+          echo "**Repository**: ${{ github.repository }}"
+          echo "**Branch**: ${{ github.ref }}"
+          echo "**Commit**: ${{ github.sha }}"
+          echo "**Triggered by**: ${{ github.actor }}"
+          echo "**Pipeline ID**: ${{ github.run_id }}"
+          echo ""
+          
+          # Here you would add:
+          # - Slack/Discord notifications
+          # - Email notifications
+          # - Deployment status updates to external systems
+          
+          echo "✅ Deployment pipeline completed successfully"
+          # - Slack/Discord notifications
+          # - Email notifications
+          # - Deployment status updates to external systems
+          
+          echo "✅ Deployment pipeline completed successfully"

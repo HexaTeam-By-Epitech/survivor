@@ -1,0 +1,42 @@
+
+name: Simple Mirroring
+
+on:
+  push:
+    branches-ignore:
+      - 'ga-ignore-*'
+      - 'main'
+      - 'dev'
+
+jobs:
+  check_repo:
+    name: "Repository Validation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: check_repo
+        run: |
+          UNWANTED_FILES=$(find . -type f -not -path -wholename "*tmp/*" -or -name "*~" -or -name "*.o" -or -name "*.so" -or -name "*.gcno" -or -name "*.gcda" -or -name "*#" -or -name "#*" -or -name "*.gcov")
+          for FILES in $UNWANTED_FILES; do
+            echo "::error file=${FILES#./},title=Unwanted file detected::${FILES#./}"
+          done
+          if [[ -n $UNWANTED_FILES ]]
+          then
+            exit 1
+          else
+            echo "✅ No unwanted files detected - repository is clean"
+          fi
+  
+  push_to_mirror:
+    name: "Mirror Repository"
+    needs: [check_repo]
+    if: ${{ github.event_name == 'push' && github.actor != 'github-actions[bot]' && startsWith(github.repository, 'HexaTeam-By-Epitech') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pixta-dev/repository-mirroring-action@v1
+        with:
+          target_repo_url: ${{ vars.MIRROR_URL }}
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
