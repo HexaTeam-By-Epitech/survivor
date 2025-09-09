@@ -295,32 +295,24 @@ export const useAppStore = defineStore('app', () => {
     errors.value.auth = null;
     
     try {
-      // Pour l'instant, on simule une connexion
-      if (email && password) {
-        user.value = {
-          id: 1,
-          account_id: 1,
-          account: {
-            id: 1,
-            name: email.includes('admin') ? 'Admin User' : 'Regular User',
-            email: email,
-            created_at: new Date().toISOString(),
-            last_updated_at: new Date().toISOString(),
-          }
-        };
-        isAuthenticated.value = true;
-        authToken.value = 'fake-token-' + Date.now();
-        
-        // Stocker dans localStorage pour persistence
-        localStorage.setItem('auth_token', authToken.value);
-        localStorage.setItem('user', JSON.stringify(user.value));
-        
-        return { success: true };
-      } else {
+      if (!email || !password) {
         throw new Error('Email and password are required');
       }
-    } catch (error) {
-      errors.value.auth = error instanceof Error ? error.message : 'Login failed';
+      // Call real authentication API
+      const response = await api.post('/auth/login', { email, password });
+      if (response && response.data && response.data.token && response.data.user) {
+        authToken.value = response.data.token;
+        user.value = response.data.user;
+        isAuthenticated.value = true;
+        // Store in localStorage for persistence
+        localStorage.setItem('auth_token', authToken.value);
+        localStorage.setItem('user', JSON.stringify(user.value));
+        return { success: true };
+      } else {
+        throw new Error('Invalid login response');
+      }
+    } catch (error: any) {
+      errors.value.auth = error?.response?.data?.message || error?.message || 'Login failed';
       return { success: false, error: errors.value.auth };
     } finally {
       loading.value.auth = false;
