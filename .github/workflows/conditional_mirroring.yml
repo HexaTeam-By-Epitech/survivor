@@ -6,6 +6,7 @@ on:
     branches:
       - 'main'
       - 'dev'
+      - 'cicd/*'
   pull_request:
     branches-ignore:
       - 'ga-ignore-*'
