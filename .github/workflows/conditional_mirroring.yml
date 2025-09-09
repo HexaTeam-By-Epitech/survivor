@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: check_repo
         run: |
-          UNWANTED_FILES=$(find . -type f -not -wholename "*tmp/*" -or -name "*~" -or -name "*.o" -or -name "*.so" -or -name "*.gcno" -or -name "*.gcda" -or -name "*#" -or -name "#*" -or -name "*.gcov")
+          UNWANTED_FILES=$(find . -type f -not -path "./.git/*" \( -wholename "*tmp/*" -o -name "*~" -o -name "*.o" -o -name "*.so" -o -name "*.gcno" -o -name "*.gcda" -o -name "*#" -o -name "#*" -o -name "*.gcov" \))
           for FILES in $UNWANTED_FILES; do
             echo "::error file=${FILES#./},title=Unwanted file detected::${FILES#./}"
           done
