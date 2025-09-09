@@ -15,8 +15,6 @@ DB_PASS = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = int(os.getenv("DB_PORT", 5432))
 
-print(f"Connecting to DB {DB_NAME} on {DB_HOST}:{DB_PORT} as {DB_USER}, password={DB_PASS}")
-
 # --- Config ---
 API_BASE_URL = "https://api.jeb-incubator.com"  # <-- adapte
 APIKEY = os.getenv("API_KEY")
