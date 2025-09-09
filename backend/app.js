@@ -31,6 +31,7 @@ app.use('/social-medias', require('@routes/socialMedia'));
 app.use('/investment-focus', require('@routes/investmentFocus'));
 app.use('/legal-status', require('@routes/legalStatus'));
 app.use('/investor-types', require('@routes/investorType'));
+app.use('/project-status', require('@routes/projectStatus'));
 
 app.get('/', (req, res) => {
     res.send('Hello World !');

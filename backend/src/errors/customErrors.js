@@ -124,6 +124,15 @@ class InvestorTypeNotFoundError extends Error {
     }
 }
 
+// --- Project status errors ---
+
+class ProjectStatusNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ProjectStatusNotFoundError';
+    }
+}
+
 // --- conflict errors ---
 
 class ConflictError extends Error {
@@ -148,5 +157,6 @@ module.exports = {
     InvestmentFocusNotFoundError,
     LegalStatusNotFoundError,
     InvestorTypeNotFoundError,
+    ProjectStatusNotFoundError,
     ConflictError
 }
