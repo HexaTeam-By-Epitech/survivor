@@ -299,7 +299,7 @@ export const useAppStore = defineStore('app', () => {
         throw new Error('Email and password are required');
       }
       // Call real authentication API
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.auth.login({ email, password });
       if (response && response.data && response.data.token && response.data.user) {
         authToken.value = response.data.token;
         user.value = response.data.user;
