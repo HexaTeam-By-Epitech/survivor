@@ -37,8 +37,10 @@ SQL_SCHEMA=$(find . -type f -name "*.sql" 2>/dev/null | head -n 1 || echo "")
 if [ -z "$SQL_SCHEMA" ]; then
     SQL_SCHEMA="../db_schemes/jeb-incubator-db.sql"
 fi
-sudo cp "$SQL_SCHEMA" /tmp/jeb-incubator-db.sql
-SQL_SCHEMA="/tmp/jeb-incubator-db.sql"
+if [ "$IS_DOCKER" = "false" ]; then
+    sudo cp "$SQL_SCHEMA" /tmp/jeb-incubator-db.sql
+    SQL_SCHEMA="/tmp/jeb-incubator-db.sql"
+fi
 
 echo "Initialisation de la base de données PostgreSQL... Via le schéma : $SQL_SCHEMA"
 
