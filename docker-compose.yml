@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_PASSWORD: ${BASE_POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5430:5432"
     networks:
       - survivor-app
     volumes:
@@ -19,6 +19,8 @@ services:
     container_name: survivor-initdb
     environment:
       BASE_POSTGRES_PASSWORD: ${BASE_POSTGRES_PASSWORD}
+    profiles:
+      - initdb
     depends_on:
       - db
     networks:
@@ -39,7 +41,6 @@ services:
       - "4242:4242"
     depends_on:
       - db
-      - initdb
     networks:
       - survivor-app
     volumes:
