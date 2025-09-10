@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import datetime
 import dotenv
 import time
+import bcrypt
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 
@@ -25,6 +26,9 @@ OUTDIR = Path("dump")
 IMGDIR = OUTDIR / "images"
 OUTDIR.mkdir(exist_ok=True)
 IMGDIR.mkdir(exist_ok=True)
+
+PASSWORD = "changeme"
+HASHED_PASSWORD = bcrypt.hashpw(PASSWORD.encode(), bcrypt.gensalt(10))
 
 HEADERS = {"X-Group-Authorization": APIKEY, "Accept": "application/json"}
 
@@ -116,7 +120,7 @@ def insert_account(name, email, image_path=None):
             name,
             email,
             image_path,
-            "changeme",  # placeholder
+            HASHED_PASSWORD,
             datetime.now(),
             datetime.now(),
         ),
