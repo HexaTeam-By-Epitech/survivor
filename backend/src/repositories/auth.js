@@ -1,12 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const CompanyRepository = require('@repositories/company');
-const StartupRepository = require('@repositories/startup');
-const UserRepository = require('@repositories/user');
-const AdminRepository = require('@repositories/admin');
-const InvestorRepository = require('@repositories/investor');
-
 class AuthRepository {
     static async hashPassword(password, saltRounds) {
         return await bcrypt.hash(password, saltRounds);
@@ -38,29 +32,6 @@ class AuthRepository {
             audience: jwtConfig.audience,
             ignoreExpiration: true
         });
-    }
-
-    static async getRoleByAccountId(accountId) {
-        // STARTUP
-        const company = await CompanyRepository.findByAccountId(accountId);
-        if (company) {
-            const startup = await StartupRepository.findByCompanyId(company.id);
-            if (startup) return { role: 'startup', id: startup.id };
-        }
-
-        // USER
-        const user = await UserRepository.findByAccountId(accountId);
-        if (user) {
-            const admin = await AdminRepository.getById(user.id);
-            if (admin) return { role: 'admin', id: admin.id };
-
-            const investor = await InvestorRepository.getById(user.id);
-            if (investor) return { role: 'investor', id: investor.id };
-
-            return { role: 'user', id: user.id };
-        }
-
-        throw new Error('User role not found');
     }
 }
 

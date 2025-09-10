@@ -1,5 +1,5 @@
 const ApiResponse = require('@utils/response');
-const AuthService = require('@services/auth.service');
+const AuthService = require('@services/auth');
 
 class Auth {
     static async signup(req, res) {
