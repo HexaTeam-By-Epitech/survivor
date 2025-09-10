@@ -26,9 +26,11 @@ const handleLogin = async () => {
   }
 };
 
-const handleSignup = () => {
-  // Pour l'instant, on simule un signup qui fait un login
-  handleLogin();
+const handleSignup = async () => {
+  const result = await store.signup(formData.value.name, formData.value.email, formData.value.password);
+  if (result.success) {
+    formData.value = { email: '', password: '', name: '' };
+  }
 };
 
 const handleLogout = () => {
