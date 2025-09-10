@@ -4,14 +4,33 @@ WORKDIR /server
 
 RUN apk update && apk add nodejs npm
 
-COPY ./backend/package.json ./
+# Copy package.json first for better caching
+COPY ./backend/package.json ./package.json
+RUN npm install
+
+# Copy the rest of the backend files (node_modules excluded by .dockerignore)
 COPY ./backend ./
 
-RUN ls -aR
+# Generate Prisma client
+RUN npx prisma generate
+
+# Remove already existing node_modules dir if it exists
+RUN if [ -d "node_modules" ]; then rm -rf node_modules; fi
 RUN npm install
+
+# Create startup script
+RUN echo '#!/bin/sh' > start.sh && \
+    echo 'echo "Waiting for database configuration..."' >> start.sh && \
+    echo 'while [ ! -f /server/config/.env ]; do' >> start.sh && \
+    echo '  echo "Waiting for .env file from initdb..."' >> start.sh && \
+    echo '  sleep 2' >> start.sh && \
+    echo 'done' >> start.sh && \
+    echo 'echo "Database configuration found, loading environment..."' >> start.sh && \
+    echo 'export $(cat /server/config/.env | xargs)' >> start.sh && \
+    echo 'echo "Starting Node.js application..."' >> start.sh && \
+    echo 'npm start' >> start.sh && \
+    chmod +x start.sh
 
 EXPOSE 4242
 
-# Remove already existing node_modules dir
-RUN [ -d "node_modules" ] && rm -rf node_modules
-ENTRYPOINT ["node", "app.js"]
+ENTRYPOINT ["./start.sh"]

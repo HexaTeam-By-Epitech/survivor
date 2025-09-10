@@ -665,6 +665,1058 @@ paths:
         '404':
           description: News not found
 
+  /sectors:
+    get:
+      summary: Get all sectors
+      tags:
+        - Sectors
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of sectors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sector'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new sector
+      tags:
+        - Sectors
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SectorCreateRequest'
+      responses:
+        '201':
+          description: Sector created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+        '500':
+          description: Internal server error
+
+  /sectors/{id}:
+    get:
+      summary: Get a sector by ID
+      tags:
+        - Sectors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sector found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+        '404':
+          description: Sector not found
+
+    put:
+      summary: Update a sector by ID
+      tags:
+        - Sectors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SectorUpdateRequest'
+      responses:
+        '200':
+          description: Sector updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+        '404':
+          description: Sector not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a sector by ID
+      tags:
+        - Sectors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Sector deleted successfully
+        '404':
+          description: Sector not found
+        '500':
+          description: Internal server error
+
+  /event-categories:
+    get:
+      summary: Get all event categories
+      tags:
+        - Event Categories
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of event categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventCategory'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new event category
+      tags:
+        - Event Categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCategoryCreateRequest'
+      responses:
+        '201':
+          description: Event category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCategory'
+        '409':
+          description: Name conflict
+        '500':
+          description: Internal server error
+
+  /event-categories/{id}:
+    get:
+      summary: Get an event category by ID
+      tags:
+        - Event Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Event category found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCategory'
+        '404':
+          description: Event category not found
+
+    put:
+      summary: Update an event category by ID
+      tags:
+        - Event Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCategoryUpdateRequest'
+      responses:
+        '200':
+          description: Event category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCategory'
+        '404':
+          description: Event category not found
+        '409':
+          description: Name conflict
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete an event category by ID
+      tags:
+        - Event Categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Event category deleted successfully
+        '404':
+          description: Event category not found
+        '500':
+          description: Internal server error
+
+  /partner-types:
+    get:
+      summary: Get all partner types
+      tags:
+        - PartnerTypes
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of partner types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PartnerType'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new partner type
+      tags:
+        - PartnerTypes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerTypeCreateRequest'
+      responses:
+        '201':
+          description: Partner type created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerType'
+        '409':
+          description: Conflict - name already exists
+        '500':
+          description: Internal server error
+
+  /partner-types/{id}:
+    get:
+      summary: Get a partner type by ID
+      tags:
+        - PartnerTypes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Partner type found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerType'
+        '404':
+          description: Partner type not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update a partner type by ID
+      tags:
+        - PartnerTypes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerTypeUpdateRequest'
+      responses:
+        '200':
+          description: Partner type updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerType'
+        '404':
+          description: Partner type not found
+        '409':
+          description: Conflict - name already exists
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a partner type by ID
+      tags:
+        - PartnerTypes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Partner type deleted successfully
+        '404':
+          description: Partner type not found
+        '500':
+          description: Internal server error
+
+  /social-medias:
+    get:
+      summary: Get all social media entries
+      tags:
+        - SocialMedias
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of social media entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SocialMedia'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new social media entry
+      tags:
+        - SocialMedias
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SocialMediaCreateRequest'
+      responses:
+        '200':
+          description: Social media created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialMedia'
+        '409':
+          description: Conflict - name already exists
+        '500':
+          description: Internal server error
+
+  /social-medias/{id}:
+    get:
+      summary: Get a social media entry by ID
+      tags:
+        - SocialMedias
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Social media entry found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialMedia'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update a social media entry by ID
+      tags:
+        - SocialMedias
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SocialMediaUpdateRequest'
+      responses:
+        '200':
+          description: Social media updated
+        '404':
+          description: Not found
+        '409':
+          description: Conflict (optional, if implemented)
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a social media entry by ID
+      tags:
+        - SocialMedias
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted successfully
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
+  /investment-focus:
+    get:
+      summary: Get all investment focus entries
+      tags:
+        - InvestmentFocus
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of investment focus entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InvestmentFocus'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new investment focus
+      tags:
+        - InvestmentFocus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvestmentFocusCreateRequest'
+      responses:
+        '201':
+          description: Investment focus created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestmentFocus'
+        '409':
+          description: Conflict - name already exists
+        '500':
+          description: Internal server error
+
+  /investment-focus/{id}:
+    get:
+      summary: Get investment focus by ID
+      tags:
+        - InvestmentFocus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Investment focus found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestmentFocus'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update an investment focus by ID
+      tags:
+        - InvestmentFocus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvestmentFocusUpdateRequest'
+      responses:
+        '200':
+          description: Investment focus updated
+        '404':
+          description: Not found
+        '409':
+          description: Conflict - name already in use
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete investment focus by ID
+      tags:
+        - InvestmentFocus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Deleted successfully
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
+  /legal-status:
+    get:
+      summary: Get all legal status entries
+      tags:
+        - LegalStatus
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of legal status entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LegalStatus'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new legal status
+      tags:
+        - LegalStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegalStatusCreateRequest'
+      responses:
+        '201':
+          description: Legal status created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalStatus'
+        '409':
+          description: Conflict - name already exists
+        '500':
+          description: Internal server error
+
+  /legal-status/{id}:
+    get:
+      summary: Get legal status by ID
+      tags:
+        - LegalStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Legal status found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalStatus'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update a legal status by ID
+      tags:
+        - LegalStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegalStatusUpdateRequest'
+      responses:
+        '200':
+          description: Legal status updated
+        '404':
+          description: Not found
+        '409':
+          description: Conflict - name already in use
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete legal status by ID
+      tags:
+        - LegalStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Deleted successfully
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
+  /investor-types:
+    get:
+      summary: Get all investor types
+      tags:
+        - InvestorType
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of investor types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InvestorTypes'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new investor type
+      tags:
+        - InvestorType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvestorTypesCreateRequest'
+      responses:
+        '201':
+          description: Investor type created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestorTypes'
+        '409':
+          description: Conflict - name already exists
+        '500':
+          description: Internal server error
+
+  /investor-types/{id}:
+    get:
+      summary: Get investor type by ID
+      tags:
+        - InvestorType
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Investor type found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestorTypes'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update investor type by ID
+      tags:
+        - InvestorType
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvestorTypesUpdateRequest'
+      responses:
+        '200':
+          description: Investor type updated
+        '404':
+          description: Not found
+        '409':
+          description: Conflict - name already in use
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete investor type by ID
+      tags:
+        - InvestorType
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Deleted successfully
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
+  /project-status:
+    get:
+      summary: Get all project statuses
+      tags:
+        - ProjectStatus
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of project statuses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProjectStatus'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new project status
+      tags:
+        - ProjectStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectStatusCreateRequest'
+      responses:
+        '201':
+          description: Project status created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStatus'
+        '409':
+          description: Conflict - name already exists
+        '500':
+          description: Internal server error
+
+  /project-status/{id}:
+    get:
+      summary: Get project status by ID
+      tags:
+        - ProjectStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Project status found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStatus'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update project status by ID
+      tags:
+        - ProjectStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectStatusUpdateRequest'
+      responses:
+        '200':
+          description: Project status updated
+        '404':
+          description: Not found
+        '409':
+          description: Conflict - name already in use
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete project status by ID
+      tags:
+        - ProjectStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Deleted successfully
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1024,3 +2076,270 @@ components:
         date:
           type: string
           format: date-time
+
+    Sector:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique sector identifier
+        name:
+          type: string
+          description: Sector name
+        description:
+          type: string
+          nullable: true
+          description: Optional sector description
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp of creation
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+
+    SectorCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Sector name
+        description:
+          type: string
+          nullable: true
+          description: Optional sector description
+
+    SectorUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Sector name
+        description:
+          type: string
+          nullable: true
+          description: Optional sector description
+
+    EventCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    EventCategoryCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    EventCategoryUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    PartnerType:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PartnerTypeCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    PartnerTypeUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    SocialMedia:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SocialMediaCreateRequest:
+      type: object
+      required:
+        - name
+        - url
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+
+    SocialMediaUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+
+    InvestmentFocus:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    InvestmentFocusCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    InvestmentFocusUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    LegalStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    LegalStatusCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    LegalStatusUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    InvestorTypes:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    InvestorTypesCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    InvestorTypesUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    ProjectStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProjectStatusCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    ProjectStatusUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string

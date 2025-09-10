@@ -61,6 +61,78 @@ class NewsNotFoundError extends Error {
     }
 }
 
+// --- Sector errors ---
+
+class SectorNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'SectorNotFoundError';
+    }
+}
+
+// --- EventCategory errors ---
+
+class EventCategoryNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'EventCategoryNotFoundError';
+    }
+}
+
+// --- PartnerType errors ---
+
+class PartnerTypeNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'PartnerTypeNotFoundError';
+    }
+}
+
+// --- SocialMedia errors ---
+
+class SocialMediaNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'SocialMediaNotFoundError';
+    }
+}
+
+// --- Investment focus errors ---
+
+class InvestmentFocusNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'InvestmentFocusNotFoundError';
+    }
+}
+
+// --- Legal status errors ---
+
+class LegalStatusNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'LegalStatusNotFoundError';
+    }
+}
+
+// --- Investor Type errors ---
+
+class InvestorTypeNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'InvestorTypeNotFoundError';
+    }
+}
+
+// --- Project status errors ---
+
+class ProjectStatusNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ProjectStatusNotFoundError';
+    }
+}
+
 // --- conflict errors ---
 
 class ConflictError extends Error {
@@ -78,5 +150,13 @@ module.exports = {
     ProjectNotFoundError,
     EventNotFoundError,
     NewsNotFoundError,
+    SectorNotFoundError,
+    EventCategoryNotFoundError,
+    PartnerTypeNotFoundError,
+    SocialMediaNotFoundError,
+    InvestmentFocusNotFoundError,
+    LegalStatusNotFoundError,
+    InvestorTypeNotFoundError,
+    ProjectStatusNotFoundError,
     ConflictError
 }

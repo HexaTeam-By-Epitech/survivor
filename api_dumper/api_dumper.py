@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import datetime
 import dotenv
 import time
+import bcrypt
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 
@@ -25,6 +26,9 @@ OUTDIR = Path("dump")
 IMGDIR = OUTDIR / "images"
 OUTDIR.mkdir(exist_ok=True)
 IMGDIR.mkdir(exist_ok=True)
+
+PASSWORD = "changeme"
+HASHED_PASSWORD = bcrypt.hashpw(PASSWORD.encode(), bcrypt.gensalt(10))
 
 HEADERS = {"X-Group-Authorization": APIKEY, "Accept": "application/json"}
 
@@ -62,12 +66,35 @@ def fetch_list(endpoint: str, limit: int = 100):
     return results
 
 
-def fetch_item(endpoint: str, item_id: int):
-    r = requests.get(
-        f"{API_BASE_URL}/{endpoint}/{item_id}", headers=HEADERS, timeout=20
-    )
-    r.raise_for_status()
-    return r.json()
+def fetch_item(endpoint: str, item_id: int, max_retries: int = 3):
+    """Fetch a single item with retry logic for robustness"""
+    for attempt in range(max_retries):
+        try:
+            r = requests.get(
+                f"{API_BASE_URL}/{endpoint}/{item_id}", headers=HEADERS, timeout=30
+            )
+            if r.status_code == 429:
+                print(f"[WARN] Rate limited on {endpoint}/{item_id}, waiting 10 seconds...")
+                time.sleep(10)
+                continue
+            elif r.status_code >= 500:
+                print(f"[WARN] Server error {r.status_code} for {endpoint}/{item_id}, attempt {attempt + 1}/{max_retries}")
+                if attempt < max_retries - 1:
+                    time.sleep(5 * (attempt + 1))  # Exponential backoff
+                    continue
+                else:
+                    print(f"[ERROR] Failed to fetch {endpoint}/{item_id} after {max_retries} attempts")
+                    return None
+            r.raise_for_status()
+            return r.json()
+        except requests.exceptions.RequestException as e:
+            print(f"[WARN] Request error for {endpoint}/{item_id}: {e}, attempt {attempt + 1}/{max_retries}")
+            if attempt < max_retries - 1:
+                time.sleep(5 * (attempt + 1))
+            else:
+                print(f"[ERROR] Failed to fetch {endpoint}/{item_id} after {max_retries} attempts due to: {e}")
+                return None
+    return None
 
 
 def fetch_image(endpoint: str, item_id: int, filename: str):
@@ -93,7 +120,7 @@ def insert_account(name, email, image_path=None):
             name,
             email,
             image_path,
-            "changeme",  # placeholder
+            HASHED_PASSWORD,
             datetime.now(),
             datetime.now(),
         ),
@@ -103,6 +130,87 @@ def insert_account(name, email, image_path=None):
 
 # Global variable to store startup mapping
 startup_id_mapping = {}
+
+# --- Project Helper Functions ---
+def has_project_data(startup_details):
+    """Check if startup has meaningful project data"""
+    project_fields = ['project_status', 'needs', 'sector', 'maturity']
+    return any(startup_details.get(field) for field in project_fields)
+
+def get_or_create_sector(sector_name):
+    """Get sector ID by name, create if doesn't exist"""
+    if not sector_name:
+        return None
+    
+    # Try to find existing sector
+    cur.execute("""SELECT id FROM "Sectors" WHERE name ILIKE %s""", (sector_name,))
+    result = cur.fetchone()
+    if result:
+        return result[0]
+    
+    # Create new sector
+    cur.execute("""INSERT INTO "Sectors" (name) VALUES (%s) RETURNING id""", (sector_name,))
+    return cur.fetchone()[0]
+
+def get_or_create_project_status(status_name):
+    """Get project status ID by name, create if doesn't exist"""
+    if not status_name:
+        return None
+    
+    # Try to find existing status
+    cur.execute("""SELECT id FROM "ProjectStatus" WHERE name ILIKE %s""", (status_name,))
+    result = cur.fetchone()
+    if result:
+        return result[0]
+    
+    # Create new status
+    cur.execute("""INSERT INTO "ProjectStatus" (name) VALUES (%s) RETURNING id""", (status_name,))
+    return cur.fetchone()[0]
+
+def create_project_for_startup(startup_db_id, startup_details, startup_name):
+    """Create a project record for a startup using the startup's project data"""
+    # Generate project name from startup name
+    project_name = f"{startup_name} Project"
+    
+    # Get or create sector
+    sector_id = get_or_create_sector(startup_details.get('sector'))
+    
+    # Get or create project status
+    project_status_id = get_or_create_project_status(startup_details.get('project_status'))
+    
+    # Insert project
+    try:
+        cur.execute("""
+            INSERT INTO "Projects" (startup_id, name, project_status_id, needs, sector_id, maturity)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING id
+        """, (
+            startup_db_id,
+            project_name,
+            project_status_id,
+            startup_details.get('needs'),
+            sector_id,
+            startup_details.get('maturity')
+        ))
+        project_id = cur.fetchone()[0]
+        print(f"[INFO] Created project {project_id} for startup {startup_name}")
+    except Exception as e:
+        print(f"[WARN] Could not create project for {startup_name}: {e}")
+
+def create_social_media_for_startup(company_id, startup_details, startup_name):
+    """Create social media records for a startup"""
+    social_media_url = startup_details.get('social_media_url')
+    if social_media_url:
+        try:
+            cur.execute("""
+                INSERT INTO "SocialMedias" (url, company_id)
+                VALUES (%s, %s)
+                RETURNING id
+            """, (social_media_url, company_id))
+            social_media_id = cur.fetchone()[0]
+            print(f"[INFO] Created social media {social_media_id} for startup {startup_name}")
+        except Exception as e:
+            print(f"[WARN] Could not create social media for {startup_name}: {e}")
 
 
 # --- Import logique ---
@@ -195,6 +303,24 @@ def import_startups():
         # Store mapping between API startup ID and database startup ID
         startup_id_mapping[s["id"]] = startup_db_id
         print(f"[INFO] Mapped startup API ID {s['id']} to DB ID {startup_db_id}")
+        
+        # Add a small delay to be gentle on the API
+        time.sleep(0.5)
+        
+        # Get detailed startup info to extract project data
+        startup_details = fetch_item("startups", s["id"])
+        
+        # Create project if we have project-related data
+        if startup_details and has_project_data(startup_details):
+            create_project_for_startup(startup_db_id, startup_details, s["name"])
+        elif startup_details is None:
+            print(f"[WARN] Could not fetch details for startup {s['name']} (ID: {s['id']}), skipping project creation")
+        
+        # Create social media record if we have social media URL
+        if startup_details and startup_details.get('social_media_url'):
+            create_social_media_for_startup(company_id, startup_details, s["name"])
+        elif startup_details is None:
+            print(f"[WARN] Could not fetch details for startup {s['name']} (ID: {s['id']}), skipping social media creation")
 
 
 def import_partners():
