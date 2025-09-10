@@ -1,20 +1,25 @@
-const AuthService = require("@services/auth");
-const authService = new AuthService();
+const ApiResponse = require('@utils/response');
+const AuthService = require('@services/auth');
 
-exports.signup = async (req, res) => {
-    try {
-        const token = await authService.signup(req.body);
-        res.json({ token });
-    } catch (err) {
-        res.status(400).json({ error: err.message });
+class Auth {
+    static async signup(req, res) {
+        try {
+            const token = await AuthService.signup(req.body);
+            return ApiResponse.success(res, token);
+        } catch (error) {
+            return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
+        }
     }
-};
 
-exports.login = async (req, res) => {
-    try {
-        const token = await authService.login(req.body.email, req.body.password);
-        res.json({ token });
-    } catch (err) {
-        res.status(401).json({ error: err.message });
+    static async login(req, res) {
+        try {
+            const { email, password } = req.body;
+            const token = await AuthService.login(email, password);
+            return ApiResponse.success(res, token);
+        } catch (error) {
+            return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
+        }
     }
-};
+}
+
+module.exports = Auth;
