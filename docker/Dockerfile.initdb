@@ -8,4 +8,4 @@ COPY ./db_schemes ./db_schemes
 RUN apk update && apk add libpq-dev postgresql-client python3 py3-pip openssl gcc musl-dev python3-dev
 RUN python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
 
-ENTRYPOINT ["sh", "-c", "env $(cat .env | xargs) ./init_db.sh && cp shared/.env . && venv/bin/python3 ./api_dumper.py"]
+ENTRYPOINT ["sh", "-c", "env IS_DOCKER=true $(cat .env | xargs) ./init_db.sh && cp shared/.env . && venv/bin/python3 ./api_dumper.py"]
