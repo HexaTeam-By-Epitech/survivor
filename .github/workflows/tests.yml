@@ -1,13 +1,21 @@
-name: CI/CD Pipeline
+name: Legacy CI/CD Pipeline (DEPRECATED)
+
+# This workflow is deprecated - use the new modular workflows:
+# - conditional_mirroring.yml for main/dev branches and PRs
+# - mirroring.yml for other branches  
+# - unit_tests.yml (reusable workflow)
+# - build_deployment.yml (reusable workflow)
+# - performance_health.yml (reusable workflow)
+# - app_deployment.yml for full deployment pipeline
 
 on:
-  push:
-    branches: [ main, dev ]
-  pull_request:
-    branches: [ main, dev ]
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '18'
+  POSTGRES_USER: 'test_user'
+  POSTGRES_PASSWORD: 'test_password'
+  POSTGRES_DB: 'test_db'
   
 jobs:
   # Code Quality and Security Checks

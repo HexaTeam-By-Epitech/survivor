@@ -1,0 +1,354 @@
+name: Performance & Health Checks
+
+on:
+  workflow_call:
+    inputs:
+      target_url:
+        description: 'Target URL for health checks'
+        required: false
+        type: string
+        default: 'http://localhost:4242'
+      load_test_duration:
+        description: 'Duration of load test in seconds'
+        required: false
+        type: string
+        default: '30'
+
+env:
+  NODE_VERSION: '18'
+  POSTGRES_PASSWORD: 'perf_test_pass'
+
+jobs:
+  performance_tests:
+    name: "Performance & Load Testing"
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: perf_test_pass
+          POSTGRES_DB: perf_test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install performance testing tools
+        run: |
+          # Install artillery for load testing
+          npm install -g artillery@latest
+          
+          # Install autocannon as alternative
+          npm install -g autocannon
+          
+          # Install clinic.js for performance profiling
+          npm install -g clinic
+          
+          echo "✅ Performance testing tools installed"
+      
+      - name: Setup application for performance testing
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:perf_test_pass@localhost:5432/perf_test_db
+          NODE_ENV: production
+        run: |
+          echo "Setting up application for performance testing..."
+          npm install
+          
+          # Setup database if Prisma is used
+          if [ -f "prisma/schema.prisma" ]; then
+            npx prisma generate
+            npx prisma db push --force-reset
+          fi
+          
+          echo "✅ Application setup complete"
+      
+      - name: Start application in background
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:perf_test_pass@localhost:5432/perf_test_db
+          NODE_ENV: production
+          PORT: 4242
+        run: |
+          echo "Starting application for performance testing..."
+          
+          # Start the application in background
+          if [ -f "server.js" ]; then
+            node server.js &
+            APP_PID=$!
+            echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+            echo "Application started with PID: $APP_PID"
+          elif [ -f "app.js" ]; then
+            node app.js &
+            APP_PID=$!
+            echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+            echo "Application started with PID: $APP_PID"
+          else
+            echo "No server entry point found, using npm start"
+            npm start &
+            APP_PID=$!
+            echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+          fi
+          
+          # Wait for application to start
+          sleep 10
+          
+          # Verify application is running
+          if kill -0 $APP_PID 2>/dev/null; then
+            echo "✅ Application is running"
+          else
+            echo "❌ Application failed to start"
+            exit 1
+          fi
+      
+      - name: Basic health checks
+        run: |
+          echo "Running basic health checks..."
+          
+          # Check if application is responding
+          for i in {1..10}; do
+            if curl -f ${{ inputs.target_url }}/health 2>/dev/null; then
+              echo "✅ Health endpoint responding"
+              break
+            elif curl -f ${{ inputs.target_url }} 2>/dev/null; then
+              echo "✅ Application root endpoint responding"
+              break
+            else
+              echo "Attempt $i: Application not responding yet..."
+              sleep 3
+            fi
+          done
+          
+          # Memory usage check
+          echo "## Memory Usage"
+          free -h
+          
+          # CPU usage check
+          echo "## CPU Usage"
+          top -bn1 | head -15
+          
+          # Disk usage check
+          echo "## Disk Usage"
+          df -h
+        continue-on-error: true
+      
+      - name: Load testing with Artillery
+        run: |
+          echo "Running load tests with Artillery..."
+          
+          # Create artillery configuration
+          cat > artillery-config.yml << 'EOF'
+          config:
+            target: '${{ inputs.target_url }}'
+            phases:
+              - duration: 10
+                arrivalRate: 5
+                name: "Warm up"
+              - duration: ${{ inputs.load_test_duration }}
+                arrivalRate: 10
+                name: "Sustained load"
+              - duration: 10
+                arrivalRate: 2
+                name: "Cool down"
+          scenarios:
+            - name: "Basic load test"
+              weight: 80
+              flow:
+                - get:
+                    url: "/"
+                - think: 1
+                - get:
+                    url: "/health"
+            - name: "API endpoint test"
+              weight: 20
+              flow:
+                - get:
+                    url: "/api/health"
+                - think: 2
+          EOF
+          
+          # Run artillery test
+          artillery run artillery-config.yml --output artillery-report.json || echo "Artillery test completed with issues"
+          
+          # Generate HTML report if possible
+          artillery report artillery-report.json --output artillery-report.html || echo "Could not generate HTML report"
+          
+          echo "✅ Load testing completed"
+        continue-on-error: true
+      
+      - name: Performance profiling with autocannon
+        run: |
+          echo "Running performance tests with autocannon..."
+          
+          # Test basic endpoint performance
+          autocannon -c 10 -d ${{ inputs.load_test_duration }} --json ${{ inputs.target_url }} > autocannon-report.json || echo "Autocannon test completed"
+          
+          # Test with different connection counts
+          echo "Testing with higher concurrency..."
+          autocannon -c 50 -d 10 --json ${{ inputs.target_url }} > autocannon-high-concurrency.json || echo "High concurrency test completed"
+          
+          echo "✅ Performance profiling completed"
+        continue-on-error: true
+      
+      - name: Memory leak detection
+        run: |
+          echo "Checking for memory leaks..."
+          
+          if [ ! -z "$APP_PID" ] && kill -0 $APP_PID 2>/dev/null; then
+            # Get initial memory usage
+            INITIAL_MEMORY=$(ps -p $APP_PID -o rss= | tr -d ' ')
+            echo "Initial memory usage: ${INITIAL_MEMORY} KB"
+            
+            # Run some load and check memory again
+            for i in {1..20}; do
+              curl -s ${{ inputs.target_url }} > /dev/null || true
+              sleep 0.5
+            done
+            
+            # Get final memory usage
+            FINAL_MEMORY=$(ps -p $APP_PID -o rss= | tr -d ' ')
+            echo "Final memory usage: ${FINAL_MEMORY} KB"
+            
+            # Calculate memory growth
+            MEMORY_GROWTH=$((FINAL_MEMORY - INITIAL_MEMORY))
+            echo "Memory growth: ${MEMORY_GROWTH} KB"
+            
+            if [ $MEMORY_GROWTH -gt 10000 ]; then
+              echo "⚠️ Significant memory growth detected: ${MEMORY_GROWTH} KB"
+            else
+              echo "✅ Memory usage appears stable"
+            fi
+          else
+            echo "Application not running, skipping memory leak detection"
+          fi
+        continue-on-error: true
+      
+      - name: Generate performance report
+        run: |
+          echo "# Performance Test Report" > performance-report.md
+          echo "**Test Date**: $(date)" >> performance-report.md
+          echo "**Target URL**: ${{ inputs.target_url }}" >> performance-report.md
+          echo "**Test Duration**: ${{ inputs.load_test_duration }}s" >> performance-report.md
+          echo "" >> performance-report.md
+          
+          # Add basic system info
+          echo "## System Information" >> performance-report.md
+          echo "- **CPU**: $(nproc) cores" >> performance-report.md
+          echo "- **Memory**: $(free -h | awk '/^Mem:/ {print $2}')" >> performance-report.md
+          echo "- **Node.js**: $(node --version)" >> performance-report.md
+          echo "" >> performance-report.md
+          
+          # Add test results if available
+          if [ -f "autocannon-report.json" ]; then
+            echo "## Autocannon Results" >> performance-report.md
+            echo '```json' >> performance-report.md
+            cat autocannon-report.json | head -20 >> performance-report.md
+            echo '```' >> performance-report.md
+          fi
+          
+          echo "✅ Performance report generated"
+      
+      - name: Cleanup application
+        if: always()
+        run: |
+          if [ ! -z "$APP_PID" ]; then
+            echo "Stopping application (PID: $APP_PID)..."
+            kill $APP_PID || true
+            sleep 5
+            kill -9 $APP_PID 2>/dev/null || true
+          fi
+          
+          # Kill any remaining node processes
+          pkill -f "node" || true
+      
+      - name: Upload performance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-reports
+          path: |
+            artillery-report.json
+            artillery-report.html
+            autocannon-report.json
+            autocannon-high-concurrency.json
+            performance-report.md
+            artillery-config.yml
+          retention-days: 7
+
+  health_monitoring:
+    name: "Application Health Monitoring"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install monitoring tools
+        run: |
+          # Install basic monitoring tools
+          sudo apt-get update
+          sudo apt-get install -y htop iotop nethogs
+          
+          # Install node monitoring packages
+          npm install -g pm2 clinic
+          
+          echo "✅ Monitoring tools installed"
+      
+      - name: Application startup monitoring
+        working-directory: ./backend
+        run: |
+          echo "Monitoring application startup..."
+          
+          npm install
+          
+          # Monitor startup time and resource usage
+          echo "Starting application with monitoring..."
+          /usr/bin/time -v node app.js 2> startup-metrics.txt || /usr/bin/time -v node server.js 2> startup-metrics.txt || echo "Could not monitor startup"
+          
+          echo "✅ Startup monitoring completed"
+        timeout-minutes: 2
+        continue-on-error: true
+      
+      - name: Generate health monitoring report
+        run: |
+          echo "# Health Monitoring Report" > health-report.md
+          echo "**Monitoring Date**: $(date)" >> health-report.md
+          echo "" >> health-report.md
+          
+          if [ -f "backend/startup-metrics.txt" ]; then
+            echo "## Startup Metrics" >> health-report.md
+            echo '```' >> health-report.md
+            cat backend/startup-metrics.txt >> health-report.md
+            echo '```' >> health-report.md
+          fi
+          
+          echo "✅ Health monitoring report generated"
+      
+      - name: Upload health reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-monitoring-reports
+          path: |
+            health-report.md
+            backend/startup-metrics.txt
+          retention-days: 7
