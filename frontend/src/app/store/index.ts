@@ -290,41 +290,52 @@ export const useAppStore = defineStore('app', () => {
   };
 
   // Authentication actions
-  const login = async (email: string, password: string) => {
+
+  // Unified handler for login/signup
+  const handleAuth = async (mode: 'login' | 'signup', payload: { email: string; password: string; name?: string }) => {
     loading.value.auth = true;
     errors.value.auth = null;
-    
     try {
-      if (!email || !password) {
-        throw new Error('Email and password are required');
+      let response;
+      if (mode === 'login') {
+        if (!payload.email || !payload.password) throw new Error('Email and password are required');
+        response = await api.auth.login({ email: payload.email, password: payload.password });
+      } else {
+        if (!payload.name || !payload.email || !payload.password) throw new Error('Name, email, and password are required');
+        response = await api.auth.signup({ name: payload.name, email: payload.email, password: payload.password });
       }
-      // Call real authentication API
-      const response = await api.auth.login({ email, password });
       if (response && response.data && response.data.token && response.data.user) {
         authToken.value = response.data.token;
         user.value = response.data.user;
         isAuthenticated.value = true;
-        // Store in localStorage for persistence
         localStorage.setItem('auth_token', authToken.value);
         localStorage.setItem('user', JSON.stringify(user.value));
         return { success: true };
       } else {
-        throw new Error('Invalid login response');
+        throw new Error('Invalid authentication response');
       }
     } catch (error: any) {
-      errors.value.auth = error?.response?.data?.message || error?.message || 'Login failed';
+      errors.value.auth = error?.response?.data?.message || error?.message || 'Authentication failed';
       return { success: false, error: errors.value.auth };
     } finally {
       loading.value.auth = false;
     }
   };
 
+  // Login action
+  const login = async (email: string, password: string) => {
+    return handleAuth('login', { email, password });
+  };
+
+  // Signup action
+  const signup = async (name: string, email: string, password: string) => {
+    return handleAuth('signup', { name, email, password });
+  };
+
   const logout = () => {
     user.value = null;
     isAuthenticated.value = false;
     authToken.value = null;
-    
-    // Nettoyer localStorage
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
   };
@@ -332,7 +343,6 @@ export const useAppStore = defineStore('app', () => {
   const checkAuthStatus = () => {
     const token = localStorage.getItem('auth_token');
     const userData = localStorage.getItem('user');
-    
     if (token && userData) {
       try {
         user.value = JSON.parse(userData);
@@ -393,7 +403,8 @@ export const useAppStore = defineStore('app', () => {
     
     // Authentication actions
     login,
+    signup,
     logout,
     checkAuthStatus,
-  };
+    };
 });
