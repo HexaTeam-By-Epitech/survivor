@@ -21,7 +21,7 @@ Let 1 minute to the db to setup and fill up
 #### Shutdown the service
 Either reboot your system, or `docker compose down`
 
-If you want to factory reset the db, use `docker compose down -v`, uncomment the previous, do a docker compose up, and re-comment
+If you want to factory reset the db, use `docker compose down -v`, and run with `--profile initdb` again.
 
 ## Ports
 ### DB - 5430
