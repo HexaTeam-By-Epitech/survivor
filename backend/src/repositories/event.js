@@ -10,7 +10,7 @@ class Event {
             skip,
             take,
             orderBy: {
-                created_at: 'desc'
+                id: 'desc'
             }
         });
     }
