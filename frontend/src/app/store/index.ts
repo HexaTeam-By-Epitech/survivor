@@ -290,7 +290,6 @@ export const useAppStore = defineStore('app', () => {
   };
 
   // Authentication actions
-
   // Unified handler for login/signup
   const handleAuth = async (mode: 'login' | 'signup', payload: { email: string; password: string; name?: string }) => {
     loading.value.auth = true;
@@ -304,9 +303,33 @@ export const useAppStore = defineStore('app', () => {
         if (!payload.name || !payload.email || !payload.password) throw new Error('Name, email, and password are required');
         response = await api.auth.signup({ name: payload.name, email: payload.email, password: payload.password });
       }
-      if (response && response.data && response.data.token && response.data.user) {
-        authToken.value = response.data.token;
-        user.value = response.data.user;
+      if (response && response.data) {
+        // Backend returns either { token: string, user: User } or just a token string
+        if (typeof response.data === 'string') {
+          // Backend returns just a token string
+          authToken.value = response.data;
+          // Create a mock user object since backend doesn't return user data
+          user.value = {
+            id: -1, // We don't have the actual ID from the token response; use -1 to indicate mock
+            account_id: -1,
+            account: {
+              id: -1,
+              name: payload.name || 'User', // Use the name from signup, or default for login
+              email: payload.email,
+              image_path: undefined,
+              created_at: new Date().toISOString(),
+              deleted_at: undefined,
+              last_updated_at: new Date().toISOString()
+            }
+          };
+        } else if (response.data.token && response.data.user) {
+          // Backend returns { token: string, user: User }
+          authToken.value = response.data.token;
+          user.value = response.data.user;
+        } else {
+          throw new Error('Invalid authentication response');
+        }
+        
         isAuthenticated.value = true;
         localStorage.setItem('auth_token', authToken.value);
         localStorage.setItem('user', JSON.stringify(user.value));
