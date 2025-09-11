@@ -86,7 +86,7 @@ jobs:
         run: |
           echo "Starting application for performance testing..."
           
-                    # Start the application in background
+          # Start the application in background
           if [ -f "server.js" ]; then
             node server.js &
             APP_PID=$!
