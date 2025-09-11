@@ -21,11 +21,11 @@ class Auth {
         }
     }
 
-    static async getRole(req, res) {
+    static async accountDetails(req, res) {
         try {
             const accountId = req.user.accountId;
-            const role = await AuthService.getRole(accountId);
-            return ApiResponse.success(res, { role });
+            const details = await AuthService.accountDetails(accountId);
+            return ApiResponse.success(res, { details });
         } catch (error) {
             return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
