@@ -11,7 +11,7 @@ const StartupRepository = require("@repositories/startup");
 
 class Auth {
     static async signup({ name, email, password, role }) {
-        const allowedRoles = ['admin', 'user', 'investor', 'startup'];
+        const allowedRoles = ['founder', 'investor', 'startup'];
         if (!allowedRoles.includes(role)) throw new Error('Invalid role');
 
         const existing = await AccountRepository.findByEmail(email);
@@ -20,31 +20,22 @@ class Auth {
         const hashed = await AuthRepository.hashPassword(password, config.security.bcryptRounds);
         const account = await AccountRepository.create({ name, email, password: hashed });
 
-        let typeId;
-
         if (role === 'founder' || role === 'investor') {
             const user = await UserRepository.create({ account_id: account.id });
 
             if (role === 'founder') {
-                const founder = await FounderRepository.create({ user_id: user.id });
-                typeId = founder.id;
+                await FounderRepository.create({ user_id: user.id });
             } else if (role === 'investor') {
-                const investor = await InvestorRepository.create({ user_id: user.id });
-                typeId = investor.id;
-            } else {
-                typeId = user.id;
+                await InvestorRepository.create({ user_id: user.id });
             }
 
         } else if (role === 'startup') {
             const company = await CompanyRepository.create({ account_id: account.id, name });
-            const startup = await StartupRepository.create({ company_id: company.id });
-            typeId = startup.id;
+            await StartupRepository.create({ company_id: company.id });
         }
 
         const payload = {
-            accountId: account.id,
-            role,
-            typeId
+            accountId: account.id
         };
 
         return jwt.sign(payload, config.jwt.secret, { expiresIn: config.jwt.expiresIn });
@@ -62,6 +53,28 @@ class Auth {
         };
 
         return jwt.sign(payload, config.jwt.secret, { expiresIn: config.jwt.expiresIn });
+    }
+
+    static async getRole(accountId) {
+        const account = await AccountRepository.getById(accountId);
+        if (!account) throw new Error('Account not found');
+
+        const user = await UserRepository.findByAccountId(accountId);
+        if (user) {
+            const founder = await FounderRepository.getByUserId(user.id);
+            if (founder) return 'founder';
+
+            const investor = await InvestorRepository.getByUserId(user.id);
+            if (investor) return 'investor';
+        }
+
+        const company = await CompanyRepository.findByAccountId(accountId);
+        if (company) {
+            const startup = await StartupRepository.findByCompanyId(company.id);
+            if (startup) return 'startup';
+        }
+
+        return 'unknown';
     }
 }
 

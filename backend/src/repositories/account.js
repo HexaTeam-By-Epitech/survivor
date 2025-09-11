@@ -1,6 +1,12 @@
 const prisma = require('@config/prisma');
 
 class Account {
+    static async getById(id) {
+        return prisma.accounts.findUnique({
+            where: { id }
+        });
+    }
+
     static async create(data) {
         return prisma.accounts.create({
             data: {

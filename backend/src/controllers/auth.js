@@ -20,6 +20,16 @@ class Auth {
             return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }
+
+    static async getRole(req, res) {
+        try {
+            const accountId = req.user.accountId;
+            const role = await AuthService.getRole(accountId);
+            return ApiResponse.success(res, { role });
+        } catch (error) {
+            return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
+        }
+    }
 }
 
 module.exports = Auth;
