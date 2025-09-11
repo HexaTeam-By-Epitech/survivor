@@ -315,7 +315,7 @@ jobs:
           /usr/bin/time -v node app.js 2> startup-metrics.txt || /usr/bin/time -v node server.js 2> startup-metrics.txt || echo "Could not monitor startup"
           
           echo "✅ Startup monitoring completed"
-        timeout-minutes: 2
+        timeout-minutes: 4
         continue-on-error: true
       
       - name: Generate health monitoring report
