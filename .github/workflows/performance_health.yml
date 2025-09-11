@@ -86,6 +86,7 @@ jobs:
         run: |
           echo "Starting application for performance testing..."
           npm install
+          npm install -g nodemon
           
           # Start the application in background
           echo "No server entry point found, using npm run dev"
