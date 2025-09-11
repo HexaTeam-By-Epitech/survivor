@@ -310,10 +310,10 @@ export const useAppStore = defineStore('app', () => {
           authToken.value = response.data;
           // Create a mock user object since backend doesn't return user data
           user.value = {
-            id: 1, // We don't have the actual ID from the token response
-            account_id: 1,
+            id: -1, // We don't have the actual ID from the token response; use -1 to indicate mock
+            account_id: -1,
             account: {
-              id: 1,
+              id: -1,
               name: payload.name || 'User', // Use the name from signup, or default for login
               email: payload.email,
               image_path: undefined,
