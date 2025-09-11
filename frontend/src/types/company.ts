@@ -9,57 +9,59 @@ export interface Account {
   last_updated_at: string;
 }
 
-// Company base interface
-export interface Company {
-  id: number;
+// Company interface - represents a business entity that extends Account
+export interface Company extends Account {
   account_id: number;
-  name: string;
   legal_status_id?: number;
   address?: string;
   phone_number?: string;
   description?: string;
-  // Joined data from Account
+  // Joined data from Account (when fetched from DB)
+  Accounts?: Account;
   account?: Account;
   legal_status?: LegalStatus;
   social_medias?: SocialMedia[];
 }
 
-// Startup interface extending Company
-export interface Startup {
-  id: number;
+// Startup interface - a company with startup-specific properties
+export interface Startup extends Company {
+  startup_id: number;
   company_id: number;
   website_url?: string;
   // Joined company data (Backend returns "Companies" capitalized)
-  Companies: Company;
+  Companies?: Company;
   // Related data (Prisma returns capitalized field names)
   founders?: StartupFounder[];
-  Projects?: Project[];  // Changed from 'projects' to 'Projects' to match Prisma
+  Projects?: Project[];
 }
 
-// Partner interface extending Company
-export interface Partner {
-  id: number;
+// Partner interface - a company with partnership info
+export interface Partner extends Company {
+  partner_id: number;
   company_id: number;
   partnership_type_id?: number;
   // Joined company data
-  Companies: Company;
+  Companies?: Company;
   partnership_type?: PartnerType;
 }
 
-// User base interface
-export interface User {
-  id: number;
+// User interface - represents a person that extends Account
+export interface User extends Account {
+  user_id: number;
   account_id: number;
-  // Joined data from Account
-  account: Account;
+  role?: string;
+  // Joined data from Account (when fetched from DB)
+  account?: Account;
+  Accounts?: Account;
 }
 
-// Founder interface extending User
-export interface Founder {
-  id: number;
+// Founder interface - a user with founder-specific properties
+export interface Founder extends User {
+  founder_id: number;
   user_id: number;
   // Joined user data
-  user: User;
+  Users?: User;
+  user?: User;
 }
 
 // StartupFounder relationship
@@ -71,16 +73,17 @@ export interface StartupFounder {
   founder?: Founder;
 }
 
-// Admin interface extending User
-export interface Admin {
-  id: number;
+// Admin interface - a user with admin privileges
+export interface Admin extends User {
+  admin_id: number;
   user_id: number;
-  user: User;
+  Users?: User;
+  user?: User;
 }
 
-// Investor interface extending User
-export interface Investor {
-  id: number;
+// Investor interface - a user with investment-related properties
+export interface Investor extends User {
+  investor_id: number;
   user_id: number;
   legal_status_id?: number;
   address?: string;
@@ -89,7 +92,8 @@ export interface Investor {
   investment_focus_id?: number;
   investor_type_id?: number;
   // Joined data
-  user: User;
+  Users?: User;
+  user?: User;
   legal_status?: LegalStatus;
   investment_focus?: InvestmentFocus;
   investor_type?: InvestorType;

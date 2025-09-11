@@ -13,7 +13,9 @@ import type {
   EventCategory,
   TargetAudience,
   InvestorType,
-  InvestmentFocus
+  InvestmentFocus,
+  Company,
+  Investor
 } from '@/types/company';
 
 // API Configuration
@@ -108,7 +110,7 @@ export const authApi = {
   },
 
   accountDetails: (accountId: number) => {
-    return apiClient.get<ApiResponse<{ role: string }>>(`/auth/accountDetails/${accountId}`);
+    return apiClient.get<ApiResponse<{ role: string, details: User | Company | Startup }>>(`/auth/accountDetails/${accountId}`);
   }
 };
 
@@ -212,6 +214,31 @@ export const usersApi = {
     apiClient.delete<ApiResponse<void>>(`/users/${id}`),
 };
 
+// Investors API
+export const investorsApi = {
+  getAll: (params?: { page?: number; limit?: number; search?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    
+    const query = queryParams.toString();
+    return apiClient.get<ApiResponse<Investor[]>>(`/investors${query ? `?${query}` : ''}`);
+  },
+  
+  getById: (id: number) =>
+    apiClient.get<ApiResponse<Investor>>(`/investors/${id}`),
+  
+  create: (investor: Partial<Investor>) =>
+    apiClient.post<ApiResponse<Investor>>('/investors', investor),
+  
+  update: (id: number, investor: Partial<Investor>) =>
+    apiClient.put<ApiResponse<Investor>>(`/investors/${id}`, investor),
+  
+  delete: (id: number) =>
+    apiClient.delete<ApiResponse<void>>(`/investors/${id}`),
+};
+
 // Events API
 export const eventsApi = {
   getAll: (params?: { page?: number; limit?: number; upcoming?: boolean }) => {
@@ -296,6 +323,7 @@ export const api = {
   partners: partnersApi,
   projects: projectsApi,
   users: usersApi,
+  investors: investorsApi,
   events: eventsApi,
   news: newsApi,
   reference: referenceApi,

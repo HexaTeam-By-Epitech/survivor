@@ -67,16 +67,16 @@ onMounted(() => {
           <div class="profile-page__avatar">
             <div class="profile-page__avatar-circle">
               <span class="profile-page__avatar-initials">
-                {{ store.user.account.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() }}
+                {{ store.user.account?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || store.user.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'U' }}
               </span>
             </div>
           </div>
           
           <div class="profile-page__info">
-            <h1 class="profile-page__name">{{ store.user.account.name }}</h1>
-            <p class="profile-page__email">{{ store.user.account.email }}</p>
+            <h1 class="profile-page__name">{{ store.user.account?.name || store.user.name || 'User' }}</h1>
+            <p class="profile-page__email">{{ store.user.account?.email || store.user.email || 'No email' }}</p>
             <p class="profile-page__role">
-              {{ store.isAdmin ? 'Administrator' : 'Member' }}
+              {{ (store.user.role || 'user').charAt(0).toUpperCase() + (store.user.role || 'user').slice(1) }}
             </p>
             
             <div class="profile-page__actions">
