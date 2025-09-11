@@ -131,7 +131,7 @@ jobs:
       - name: Install production dependencies
         working-directory: deployment/staging/backend
         run: |
-          npm ci --only=production
+          npm i --only=production
           
           # Generate Prisma client for production
           if [ -f "prisma/schema.prisma" ]; then
@@ -211,7 +211,7 @@ jobs:
       - name: Install production dependencies
         working-directory: deployment/production/backend
         run: |
-          NODE_ENV=production npm ci --only=production
+          NODE_ENV=production npm i --only=production
           
           # Security audit for production
           npm audit --audit-level=high --production
@@ -227,7 +227,7 @@ jobs:
           # Build frontend for production if build script exists
           if [ -f "frontend/package.json" ]; then
             cd frontend
-            npm ci --only=production
+            npm i --only=production
             if npm run build &> /dev/null; then
               echo "✅ Frontend built for production"
             fi
