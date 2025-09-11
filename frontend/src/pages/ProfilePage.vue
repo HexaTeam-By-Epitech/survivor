@@ -11,25 +11,39 @@ const formData = ref({
   email: '',
   password: '',
   name: '',
+  role: '', // Add role field
 });
+
+// Available roles for signup
+const availableRoles = [
+  { value: 'investor', label: 'Investor' },
+  { value: 'founder', label: 'Founder' },
+  { value: 'startup', label: 'Startup' },
+];
 
 const toggleMode = () => {
   isLoginMode.value = !isLoginMode.value;
-  formData.value = { email: '', password: '', name: '' };
+  formData.value = { email: '', password: '', name: '', role: '' };
   store.errors.auth = null;
 };
 
 const handleLogin = async () => {
   const result = await store.login(formData.value.email, formData.value.password);
   if (result.success) {
-    formData.value = { email: '', password: '', name: '' };
+    formData.value = { email: '', password: '', name: '', role: '' };
   }
 };
 
 const handleSignup = async () => {
-  const result = await store.signup(formData.value.name, formData.value.email, formData.value.password);
+  // Validate role selection
+  if (!formData.value.role) {
+    store.errors.auth = 'Please select your account role';
+    return;
+  }
+  
+  const result = await store.signup(formData.value.name, formData.value.email, formData.value.password, formData.value.role);
   if (result.success) {
-    formData.value = { email: '', password: '', name: '' };
+    formData.value = { email: '', password: '', name: '', role: '' };
   }
 };
 
@@ -53,7 +67,7 @@ onMounted(() => {
           <div class="profile-page__avatar">
             <div class="profile-page__avatar-circle">
               <span class="profile-page__avatar-initials">
-                {{ store.user.account.name.split(' ').map(n => n[0]).join('').toUpperCase() }}
+                {{ store.user.account.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() }}
               </span>
             </div>
           </div>
@@ -139,6 +153,26 @@ onMounted(() => {
                 required
                 :disabled="store.loading.auth"
               >
+            </div>
+            
+            <div v-if="!isLoginMode" class="profile-page__field">
+              <label for="role" class="profile-page__label">Account Role</label>
+              <select
+                id="role"
+                v-model="formData.role"
+                class="profile-page__input profile-page__select"
+                required
+                :disabled="store.loading.auth"
+              >
+                <option value="" disabled>Please select your account role</option>
+                <option 
+                  v-for="role in availableRoles" 
+                  :key="role.value" 
+                  :value="role.value"
+                >
+                  {{ role.label }}
+                </option>
+              </select>
             </div>
             
             <div class="profile-page__field">
@@ -391,6 +425,19 @@ onMounted(() => {
 .profile-page__input:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.profile-page__select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.profile-page__select:focus {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%233b82f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
 }
 
 .profile-page__error {

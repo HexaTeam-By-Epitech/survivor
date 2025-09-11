@@ -99,7 +99,7 @@ export const authApi = {
   login: (credentials: { email: string; password: string }) =>
     apiClient.post<ApiResponse<{ token: string; user: User }>>('/auth/login', credentials),
   
-  signup: (userData: { name: string; email: string; password: string }) =>
+  signup: (userData: { name: string; email: string; password: string, role: string }) =>
     apiClient.post<ApiResponse<{ token: string; user: User }>>('/auth/signup', userData),
   
   logout: () => {

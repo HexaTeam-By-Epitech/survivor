@@ -291,7 +291,7 @@ export const useAppStore = defineStore('app', () => {
 
   // Authentication actions
   // Unified handler for login/signup
-  const handleAuth = async (mode: 'login' | 'signup', payload: { email: string; password: string; name?: string }) => {
+  const handleAuth = async (mode: 'login' | 'signup', payload: { email: string; password: string; name?: string, role?: string }) => {
     loading.value.auth = true;
     errors.value.auth = null;
     try {
@@ -300,11 +300,10 @@ export const useAppStore = defineStore('app', () => {
         if (!payload.email || !payload.password) throw new Error('Email and password are required');
         response = await api.auth.login({ email: payload.email, password: payload.password });
       } else {
-        if (!payload.name || !payload.email || !payload.password) throw new Error('Name, email, and password are required');
-        response = await api.auth.signup({ name: payload.name, email: payload.email, password: payload.password });
+        if (!payload.name || !payload.email || !payload.password || !payload.role) throw new Error('Name, email, password, and role are required');
+        response = await api.auth.signup({ name: payload.name, email: payload.email, password: payload.password, role: payload.role });
       }
       if (response && response.data) {
-        // Backend returns either { token: string, user: User } or just a token string
         if (typeof response.data === 'string') {
           // Backend returns just a token string
           authToken.value = response.data;
@@ -351,8 +350,8 @@ export const useAppStore = defineStore('app', () => {
   };
 
   // Signup action
-  const signup = async (name: string, email: string, password: string) => {
-    return handleAuth('signup', { name, email, password });
+  const signup = async (name: string, email: string, password: string, role: string) => {
+    return handleAuth('signup', { name, email, password, role });
   };
 
   const logout = () => {
