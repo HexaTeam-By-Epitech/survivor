@@ -16,7 +16,6 @@ const formData = ref({
 
 // Available roles for signup
 const availableRoles = [
-  { value: 'investor', label: 'Investor' },
   { value: 'founder', label: 'Founder' },
   { value: 'startup', label: 'Startup' },
 ];
