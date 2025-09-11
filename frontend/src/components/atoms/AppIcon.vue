@@ -8,7 +8,8 @@ import {
   Menu, 
   X, 
   ExternalLink,
-  ArrowRight
+  ArrowRight,
+  Calendar
 } from 'lucide-vue-next';
 
 interface Props {
@@ -27,6 +28,7 @@ const iconComponent = computed(() => {
     home: Home,
     search: Search,
     discover: Compass,
+    calendar: Calendar,
     profile: User,
     menu: Menu,
     close: X,
