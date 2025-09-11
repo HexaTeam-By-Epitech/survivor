@@ -69,7 +69,7 @@ jobs:
           echo "Setting up application for performance testing..."
           npm install
           
-                    # Setup database if Prisma is used
+          # Setup database if Prisma is used
           if [ -f "prisma/schema.prisma" ]; then
             npx prisma generate
             npx prisma db push --force-reset
