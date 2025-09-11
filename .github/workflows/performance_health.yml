@@ -85,24 +85,13 @@ jobs:
           PORT: 4242
         run: |
           echo "Starting application for performance testing..."
+          npm install
           
           # Start the application in background
-          if [ -f "server.js" ]; then
-            node server.js &
-            APP_PID=$!
-            echo "APP_PID=$APP_PID" >> $GITHUB_ENV
-            echo "Application started with PID: $APP_PID"
-          elif [ -f "app.js" ]; then
-            node app.js &
-            APP_PID=$!
-            echo "APP_PID=$APP_PID" >> $GITHUB_ENV
-            echo "Application started with PID: $APP_PID"
-          else
-            echo "No server entry point found, using npm start"
-            npm start &
-            APP_PID=$!
-            echo "APP_PID=$APP_PID" >> $GITHUB_ENV
-          fi
+          echo "No server entry point found, using npm run dev"
+          npm run dev &
+          APP_PID=$!
+          echo "APP_PID=$APP_PID" >> $GITHUB_ENV
           
           # Wait for application to start
           sleep 10
