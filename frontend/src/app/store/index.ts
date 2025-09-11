@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import jwtDecode from 'jwt-decode';
 import type { 
   Startup, 
   Partner, 
@@ -289,6 +290,18 @@ export const useAppStore = defineStore('app', () => {
     }
   };
 
+  function getAccountIdFromToken(token) {
+      if (!token) return null;
+
+      try {
+          const decoded = jwtDecode(token); 
+          return decoded.accountId || null;
+      } catch (err) {
+          console.error("Invalid JWT:", err);
+          return null;
+      }
+  }
+
   // Authentication actions
   // Unified handler for login/signup
   const handleAuth = async (mode: 'login' | 'signup', payload: { email: string; password: string; name?: string, role?: string }) => {
@@ -307,14 +320,19 @@ export const useAppStore = defineStore('app', () => {
         if (typeof response.data === 'string') {
           // Backend returns just a token string
           authToken.value = response.data;
+          const accountId = getAccountIdFromToken(authToken.value);
+          const req = await api.auth.accountDetails(accountId);
+          const accountRole = req.data.role || 'founder';
+          const accountDetails = req.data.details || {};
+
           // Create a mock user object since backend doesn't return user data
           user.value = {
-            id: -1, // We don't have the actual ID from the token response; use -1 to indicate mock
-            account_id: -1,
+            account_id: accountId,
+            id: accountDetails.id || -1,
             account: {
-              id: -1,
-              name: payload.name || 'User', // Use the name from signup, or default for login
-              email: payload.email,
+              id: accountDetails.id || -1,
+              name: accountDetails.name || 'User',
+              email: accountDetails.email,
               image_path: undefined,
               created_at: new Date().toISOString(),
               deleted_at: undefined,

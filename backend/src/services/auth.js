@@ -62,10 +62,10 @@ class Auth {
         const user = await UserRepository.findByAccountId(accountId);
         if (user) {
             const founder = await FounderRepository.getByUserId(user.id);
-            if (founder) return { details: founder, role: 'founder' };
+            if (founder) return { details: user, role: 'founder' };
 
             const investor = await InvestorRepository.getByUserId(user.id);
-            if (investor) return { details: investor, role: 'investor' };
+            if (investor) return { details: user, role: 'investor' };
         }
 
         const company = await CompanyRepository.findByAccountId(accountId);
@@ -73,8 +73,7 @@ class Auth {
             const startup = await StartupRepository.findByCompanyId(company.id);
             if (startup) return { details: startup, role: 'startup' };
         }
-
-        return 'unknown';
+        return { details: null, role: 'unknown' };
     }
 }
 

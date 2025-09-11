@@ -29,6 +29,12 @@ class User {
         });
     }
 
+    static async findByAccountId(account_id) {
+        return prisma.users.findFirst({
+            where: { account_id }
+        });
+    }
+
     static async create(data) {
         return prisma.users.create({
             data: {

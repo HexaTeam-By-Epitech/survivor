@@ -106,6 +106,10 @@ export const authApi = {
     localStorage.removeItem('auth_token');
     return Promise.resolve();
   },
+
+  accountDetails: (accountId: number) => {
+    return apiClient.get<ApiResponse<{ role: string }>>(`/auth/accountDetails/${accountId}`);
+  }
 };
 
 // Startups API

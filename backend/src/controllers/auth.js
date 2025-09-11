@@ -23,9 +23,9 @@ class Auth {
 
     static async accountDetails(req, res) {
         try {
-            const accountId = req.user.accountId;
+            const accountId = parseInt(req.params.accountId);
             const details = await AuthService.accountDetails(accountId);
-            return ApiResponse.success(res, { details });
+            return ApiResponse.success(res, details);
         } catch (error) {
             return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
