@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import { jwtDecode } from 'jwt-decode';
 import type { 
   Startup, 
   Partner, 
@@ -76,36 +77,42 @@ export const useAppStore = defineStore('app', () => {
     if (!searchQuery.value) return startups.value;
     
     const query = searchQuery.value.toLowerCase();
-    return startups.value.filter(startup =>
-      startup.Companies?.name?.toLowerCase().includes(query) ||
-      startup.Companies?.description?.toLowerCase().includes(query) ||
-      startup.website_url?.toLowerCase().includes(query)
-    );
+    return startups.value.filter(startup => {
+      // Since Startup extends Company, it should have name and description directly
+      const companyData = startup.Companies || startup;
+      return (
+        companyData.name?.toLowerCase().includes(query) ||
+        companyData.description?.toLowerCase().includes(query) ||
+        startup.website_url?.toLowerCase().includes(query)
+      );
+    });
   });
 
   // Authentication computed
   const isAdmin = computed(() => {
-    // Pour l'instant, on simule en vérifiant l'email ou un flag
-    return user.value?.account?.email?.includes('admin') || false;
+    return user.value?.role === 'admin' || user.value?.account?.email?.includes('admin') || false;
   });
 
   const isFounder = computed(() => {
-    // Pour l'instant, on simule en vérifiant si l'utilisateur est connecté
-    return isAuthenticated.value && !isAdmin.value;
+    return user.value?.role === 'founder' || (isAuthenticated.value && !isAdmin.value);
   });
 
   // For backwards compatibility, map startups to companies format
   const companies = computed(() => 
-    startups.value.map(startup => ({
-      id: startup.id,
-      name: startup.Companies?.name || 'Unknown Company',
-      description: startup.Companies?.description || 'No description available.',
-      excerpt: startup.Companies?.description?.substring(0, 150) + '...' || 'No description available.',
-      tags: ['Tech'], // Default tag since sector is not available in current schema
-      heroImage: 'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=1200',
-      website: startup.website_url || undefined,
-      type: 'startup' as const
-    }))
+    startups.value.map(startup => {
+      // Since Startup extends Company, get company data from either joined data or the startup itself
+      const companyData = startup.Companies || startup;
+      return {
+        id: startup.startup_id || startup.id,
+        name: companyData.name || startup.name || 'Unknown Company',
+        description: companyData.description || startup.description || 'No description available.',
+        excerpt: (companyData.description || startup.description || 'No description available.').substring(0, 150) + '...',
+        tags: ['Tech'], // Default tag since sector is not available in current schema
+        heroImage: 'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=1200',
+        website: startup.website_url || undefined,
+        type: 'startup' as const
+      };
+    })
   );
 
   const filteredCompanies = computed(() => {
@@ -289,9 +296,110 @@ export const useAppStore = defineStore('app', () => {
     }
   };
 
-  // Authentication actions
-  // Unified handler for login/signup
-  const handleAuth = async (mode: 'login' | 'signup', payload: { email: string; password: string; name?: string }) => {
+  // Authentication helper functions
+  const decodeToken = (token: string | null): any | null => {
+    if (!token) return null;
+    try {
+      return jwtDecode(token);
+    } catch (err) {
+      console.error("Invalid JWT:", err);
+      return null;
+    }
+  };
+
+  const getAccountIdFromToken = (token: string | null): number => {
+    const decoded = decodeToken(token);
+    return decoded?.accountId ?? -1;
+  };
+
+  const getAccountFromToken = async (token: string | null): Promise<User | null> => {
+    const accountId = getAccountIdFromToken(token);
+    if (accountId === -1) return null;
+    
+    try {
+      const response = await api.auth.accountDetails(accountId);
+      const accountRole = response.data.role || 'founder';
+      let accountDetails = response.data.details || {};
+      
+      // Create base user structure with account data
+      const baseUser: User = {
+        id: accountId,
+        user_id: accountDetails.id || -1,
+        account_id: accountId,
+        role: accountRole,
+        name: '',
+        email: '',
+        image_path: undefined,
+        created_at: new Date().toISOString(),
+        deleted_at: undefined,
+        last_updated_at: new Date().toISOString()
+      };
+
+      switch (accountRole) {
+        case 'startup':
+          const startupData = await api.startups.getById(accountDetails.id).then(res => res.data);
+          if (startupData?.Companies?.Accounts) {
+            const accountData = startupData.Companies.Accounts;
+            baseUser.name = startupData.Companies.name || accountData.name || 'Unknown Company';
+            baseUser.email = accountData.email || 'unknown@example.com';
+          } else if (startupData?.Companies) {
+            baseUser.name = startupData.Companies.name || 'Unknown Company';
+            baseUser.email = startupData.Companies.email || 'unknown@example.com';
+          }
+          break;
+          
+        case 'investor':
+          const investorData = await api.investors.getById(accountDetails.id).then(res => res.data);
+          if (investorData?.user?.account || investorData?.account) {
+            const userData = investorData.user?.account || investorData.account || investorData;
+            baseUser.name = userData.name || 'Unknown Investor';
+            baseUser.email = userData.email || 'unknown@example.com';
+          }
+          break;
+          
+        case 'partner':
+          const partnerData = await api.partners.getById(accountDetails.id).then(res => res.data);
+          if (partnerData?.Companies?.Accounts) {
+            const accountData = partnerData.Companies.Accounts;
+            baseUser.name = partnerData.Companies.name || accountData.name || 'Unknown Partner';
+            baseUser.email = accountData.email || 'unknown@example.com';
+          } else if (partnerData?.Companies) {
+            baseUser.name = partnerData.Companies.name || 'Unknown Partner';
+            baseUser.email = partnerData.Companies.email || 'unknown@example.com';
+          }
+          break;
+          
+        case 'admin':
+        case 'founder':
+        default:
+          const userData = await api.users.getById(accountDetails.id).then(res => res.data);
+          if (userData?.account || userData) {
+            const accountData = userData.account || userData;
+            baseUser.name = accountData.name || 'User';
+            baseUser.email = accountData.email || 'user@example.com';
+          }
+          break;
+      }
+
+      // Update account property with resolved data
+      baseUser.account = {
+        id: accountId,
+        name: baseUser.name,
+        email: baseUser.email,
+        image_path: baseUser.image_path,
+        created_at: baseUser.created_at,
+        deleted_at: baseUser.deleted_at,
+        last_updated_at: baseUser.last_updated_at
+      };
+
+      return baseUser;
+    } catch (error) {
+      console.error('Error getting account from token:', error);
+      return null;
+    }
+  };
+
+  const handleAuth = async (mode: 'login' | 'signup', payload: { email: string; password: string; name?: string, role?: string }) => {
     loading.value.auth = true;
     errors.value.auth = null;
     try {
@@ -300,32 +408,17 @@ export const useAppStore = defineStore('app', () => {
         if (!payload.email || !payload.password) throw new Error('Email and password are required');
         response = await api.auth.login({ email: payload.email, password: payload.password });
       } else {
-        if (!payload.name || !payload.email || !payload.password) throw new Error('Name, email, and password are required');
-        response = await api.auth.signup({ name: payload.name, email: payload.email, password: payload.password });
+        if (!payload.name || !payload.email || !payload.password || !payload.role) throw new Error('Name, email, password, and role are required');
+        response = await api.auth.signup({ name: payload.name, email: payload.email, password: payload.password, role: payload.role });
       }
+
       if (response && response.data) {
-        // Backend returns either { token: string, user: User } or just a token string
         if (typeof response.data === 'string') {
-          // Backend returns just a token string
           authToken.value = response.data;
-          // Create a mock user object since backend doesn't return user data
-          user.value = {
-            id: -1, // We don't have the actual ID from the token response; use -1 to indicate mock
-            account_id: -1,
-            account: {
-              id: -1,
-              name: payload.name || 'User', // Use the name from signup, or default for login
-              email: payload.email,
-              image_path: undefined,
-              created_at: new Date().toISOString(),
-              deleted_at: undefined,
-              last_updated_at: new Date().toISOString()
-            }
-          };
+          user.value = await getAccountFromToken(authToken.value);
         } else if (response.data.token && response.data.user) {
-          // Backend returns { token: string, user: User }
           authToken.value = response.data.token;
-          user.value = response.data.user;
+          user.value = await getAccountFromToken(authToken.value);
         } else {
           throw new Error('Invalid authentication response');
         }
@@ -351,8 +444,8 @@ export const useAppStore = defineStore('app', () => {
   };
 
   // Signup action
-  const signup = async (name: string, email: string, password: string) => {
-    return handleAuth('signup', { name, email, password });
+  const signup = async (name: string, email: string, password: string, role: string) => {
+    return handleAuth('signup', { name, email, password, role });
   };
 
   const logout = () => {
