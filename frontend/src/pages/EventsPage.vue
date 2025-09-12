@@ -83,10 +83,9 @@
       <div v-if="viewMode === 'calendar'" class="calendar-view">
         <VueCal 
           :events="calendarEvents"
-          :active-view="'month'"
-          :click-to-navigate="true"
-          :dblclick-to-navigate="false"
-          @event-click="handleEventClick"
+          :disable-views="['years', 'year']"
+          :default-view="'month'"
+          editable-events="false"
           class="vue-cal-custom"
         />
       </div>
@@ -236,15 +235,87 @@ const createForm = ref<CreateEventData>({
 
 // Computed properties
 const calendarEvents = computed((): CalendarEvent[] => {
-  return store.events.map((event: Event) => ({
-    id: event.id,
-    title: event.name,
-    content: event.description || '',
-    start: (event.EventDates?.[0]?.date || event.event_dates?.[0]?.date) || new Date().toISOString(),
-    end: (event.EventDates?.[0]?.date || event.event_dates?.[0]?.date) || new Date().toISOString(),
-    class: `event-${(event.EventsCategories?.id || event.event_type?.id) || 'default'}`,
-    allDay: true
-  }));
+  const events = store.events.map((event: Event) => {
+    // Get the event date from either field name
+    const eventDate = (event.EventDates?.[0]?.date || event.event_dates?.[0]?.date);
+    
+    console.log('Raw event:', event);
+    console.log('Processing event:', event.name, 'with date:', eventDate);
+    
+    if (!eventDate) {
+      // If no date, show as today
+      const today = new Date();
+      const todayEvent = {
+        id: event.id,
+        title: event.name,
+        content: event.description || '',
+        start: today,
+        end: today,
+        class: `event-${(event.EventsCategories?.id || event.event_type?.id) || 'default'}`,
+        allDay: true
+      };
+      console.log('No date event:', todayEvent);
+      return todayEvent;
+    }
+
+    // Parse the date string to ensure proper formatting
+    const startDate = new Date(eventDate);
+    console.log('Parsed start date:', startDate, 'isValid:', !isNaN(startDate.getTime()));
+    
+    if (isNaN(startDate.getTime())) {
+      // If date is invalid, use today
+      const today = new Date();
+      const fallbackEvent = {
+        id: event.id,
+        title: event.name + ' (Invalid date)',
+        content: event.description || '',
+        start: today,
+        end: today,
+        class: `event-${(event.EventsCategories?.id || event.event_type?.id) || 'default'}`,
+        allDay: true
+      };
+      console.log('Invalid date event:', fallbackEvent);
+      return fallbackEvent;
+    }
+    
+    // Check if the original date string includes time information
+    const hasTime = eventDate.includes('T') && eventDate.includes(':');
+    console.log('Has time:', hasTime, 'for date:', eventDate);
+    
+    if (hasTime) {
+      // If it has time, create end time 2 hours later
+      const endDate = new Date(startDate.getTime() + (2 * 60 * 60 * 1000)); // 2 hours later
+      
+      const timedEvent = {
+        id: event.id,
+        title: event.name,
+        content: event.description || '',
+        start: startDate,
+        end: endDate,
+        class: `event-${(event.EventsCategories?.id || event.event_type?.id) || 'default'}`,
+        allDay: false
+      };
+      console.log('Timed event:', timedEvent);
+      return timedEvent;
+    } else {
+      // If no time info, treat as all-day event
+      const allDayEvent = {
+        id: event.id,
+        title: event.name,
+        content: event.description || '',
+        start: startDate,
+        end: startDate,
+        class: `event-${(event.EventsCategories?.id || event.event_type?.id) || 'default'}`,
+        allDay: true
+      };
+      console.log('All day event:', allDayEvent);
+      return allDayEvent;
+    }
+  });
+  
+  console.log('Final calendar events count:', events.length);
+  console.log('Final calendar events:', events);
+  return events;
 });
 
 // Filtered events for list view
@@ -302,11 +373,16 @@ const createEvent = async () => {
       target_audience_id: createForm.value.target_audience_id || undefined
     };
 
+    // Convert the datetime-local value to ISO string for backend
+    const eventDate = new Date(createForm.value.eventDate).toISOString();
+
     // Include the event date to be handled by backend
     const eventDataWithDate = {
       ...eventData,
-      eventDate: createForm.value.eventDate
+      eventDate: eventDate
     };
+
+    console.log('Sending event data:', eventDataWithDate);
 
     const response = await api.events.create(eventDataWithDate as any);
     
@@ -349,20 +425,32 @@ const selectEvent = (event: Event) => {
   selectedEvent.value = event;
 };
 
-const handleEventClick = (event: any) => {
-  const foundEvent = store.events.find((e: Event) => e.id.toString() === event.id.toString());
-  if (foundEvent) {
-    selectEvent(foundEvent);
-  }
-};
-
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  const date = new Date(dateString);
+  
+  // Check if the original date string includes time information
+  const hasTime = dateString.includes('T') || dateString.includes(':');
+  
+  if (hasTime) {
+    // Format with date and time
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  } else {
+    // Format date only
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
 };
 
 // Initialize data
@@ -462,6 +550,33 @@ onMounted(() => {
 
 .vue-cal-custom {
   height: 600px;
+}
+
+/* Custom event styling for different categories */
+.vue-cal-custom :deep(.vuecal__event.event-1) {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.vue-cal-custom :deep(.vuecal__event.event-2) {
+  background-color: #10b981;
+  color: white;
+}
+
+.vue-cal-custom :deep(.vuecal__event.event-3) {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.vue-cal-custom :deep(.vuecal__event.event-default) {
+  background-color: #6b7280;
+  color: white;
+}
+
+.vue-cal-custom :deep(.vuecal__event) {
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .list-view {

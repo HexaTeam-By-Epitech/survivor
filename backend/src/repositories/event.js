@@ -56,7 +56,7 @@ class Event {
 
             // Then create the event date
             if (eventDate) {
-                await tx.eventDates.create({
+                await tx.EventDates.create({
                     data: {
                         date: new Date(eventDate),
                         event_id: event.id
