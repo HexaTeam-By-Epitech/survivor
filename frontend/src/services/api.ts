@@ -292,28 +292,28 @@ export const newsApi = {
 // Reference data APIs
 export const referenceApi = {
   getSectors: () =>
-    apiClient.get<ApiResponse<Sector[]>>('/reference/sectors'),
+    apiClient.get<ApiResponse<Sector[]>>('/sectors'),
   
   getLegalStatuses: () =>
-    apiClient.get<ApiResponse<LegalStatus[]>>('/reference/legal-statuses'),
+    apiClient.get<ApiResponse<LegalStatus[]>>('/legal-statuses'),
   
   getPartnerTypes: () =>
-    apiClient.get<ApiResponse<PartnerType[]>>('/reference/partner-types'),
+    apiClient.get<ApiResponse<PartnerType[]>>('/partner-types'),
   
   getProjectStatuses: () =>
-    apiClient.get<ApiResponse<ProjectStatus[]>>('/reference/project-statuses'),
+    apiClient.get<ApiResponse<ProjectStatus[]>>('/project-status?page=1&limit=1000'),
   
   getEventCategories: () =>
-    apiClient.get<ApiResponse<EventCategory[]>>('/reference/event-categories'),
+    apiClient.get<ApiResponse<EventCategory[]>>('/event-categories'),
   
   getTargetAudiences: () =>
-    apiClient.get<ApiResponse<TargetAudience[]>>('/reference/target-audiences'),
+    apiClient.get<ApiResponse<TargetAudience[]>>('/target-audiences'),
   
   getInvestorTypes: () =>
-    apiClient.get<ApiResponse<InvestorType[]>>('/reference/investor-types'),
+    apiClient.get<ApiResponse<InvestorType[]>>('/investor-types'),
   
   getInvestmentFocus: () =>
-    apiClient.get<ApiResponse<InvestmentFocus[]>>('/reference/investment-focus'),
+    apiClient.get<ApiResponse<InvestmentFocus[]>>('/investment-focus'),
 };
 
 // Export combined API

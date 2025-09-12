@@ -9,20 +9,39 @@ const store = useAppStore();
 // Active filter type (startups or projects)
 const activeFilter = ref<'startups' | 'projects'>('startups');
 
+// Project status filter
+const selectedProjectStatus = ref<number | 'all'>('all');
+
 // Computed properties for filtered data
 const filteredStartups = computed(() => {
   return store.filteredStartups;
 });
 
 const filteredProjects = computed(() => {
-  if (!store.searchQuery) return store.projects;
+  let projects = store.projects;
   
-  const query = store.searchQuery.toLowerCase();
-  return store.projects.filter(project =>
-    project.name?.toLowerCase().includes(query) ||
-    project.needs?.toLowerCase().includes(query) ||
-    project.maturity?.toLowerCase().includes(query)
-  );
+  // Filter by status first
+  if (selectedProjectStatus.value !== 'all') {
+    console.log( "Value of selectedProjectStatus.value:", selectedProjectStatus.value);
+    console.log( "Projects before filtering:", projects );
+    console.log( "Comparison value:", selectedProjectStatus.value === projects[0]?.project_status_id )
+    projects = projects.filter(project => 
+      project?.project_status_id === selectedProjectStatus.value
+    );
+    console.log("Filtered projects by status:", projects );
+  }
+  
+  // Then filter by search query
+  if (store.searchQuery) {
+    const query = store.searchQuery.toLowerCase();
+    projects = projects.filter(project =>
+      project.name?.toLowerCase().includes(query) ||
+      project.needs?.toLowerCase().includes(query) ||
+      project.maturity?.toLowerCase().includes(query)
+    );
+  }
+  
+  return projects;
 });
 
 const totalResults = computed(() => {
@@ -51,6 +70,16 @@ const currentError = computed(() => {
 const setActiveFilter = (type: 'startups' | 'projects') => {
   activeFilter.value = type;
   
+  // Reset project status filter when switching to projects
+  if (type === 'projects') {
+    selectedProjectStatus.value = 'all';
+    
+    // Load reference data if not already loaded (including project statuses)
+    if (store.projectStatuses.length === 0) {
+      store.fetchReferenceData();
+    }
+  }
+  
   // Load data if not already loaded
   if (type === 'projects' && store.projects.length === 0) {
     store.fetchProjects({ limit: 50 });
@@ -63,6 +92,11 @@ onMounted(async () => {
   // Load data if not already loaded
   if (store.startups.length === 0) {
     await store.initializeApp();
+  }
+  
+  // Ensure reference data is loaded (including project statuses)
+  if (store.projectStatuses.length === 0) {
+    await store.fetchReferenceData();
   }
 });
 </script>
@@ -100,6 +134,27 @@ onMounted(async () => {
             :placeholder="`Search ${activeFilter}...`"
           />
         </div>
+        
+        <!-- Project Status Filter -->
+        <div v-if="activeFilter === 'projects' && store.projectStatuses.length > 0" class="discover-page__status-filter">
+          <label for="project-status" class="discover-page__status-label">
+            Filter by Status:
+          </label>
+          <select 
+            id="project-status"
+            v-model="selectedProjectStatus" 
+            class="discover-page__status-select"
+          >
+            <option value="all">All Statuses</option>
+            <option 
+              v-for="status in store.projectStatuses" 
+              :key="status.id" 
+              :value="status.id"
+            >
+              {{ status.name }}
+            </option>
+          </select>
+        </div>
       </header>
       
       <section class="discover-page__results">
@@ -112,13 +167,22 @@ onMounted(async () => {
         </div>
         
         <template v-else>
-          <div v-if="store.searchQuery && !hasResults" class="discover-page__no-results">
-            <p>No {{ activeFilter }} found matching "{{ store.searchQuery }}"</p>
-            <p class="discover-page__no-results-hint">Try different keywords or check your spelling</p>
+          <div v-if="(store.searchQuery || (activeFilter === 'projects' && selectedProjectStatus !== 'all')) && !hasResults" class="discover-page__no-results">
+            <p>No {{ activeFilter }} found
+              <span v-if="store.searchQuery">matching "{{ store.searchQuery }}"</span>
+              <span v-if="activeFilter === 'projects' && selectedProjectStatus !== 'all'">
+                {{ store.searchQuery ? ' and' : '' }} with status "{{ store.projectStatuses.find(s => s.id === selectedProjectStatus)?.name }}"
+              </span>
+            </p>
+            <p class="discover-page__no-results-hint">Try different keywords, check your spelling, or adjust your filters</p>
           </div>
           
-          <div v-else-if="store.searchQuery" class="discover-page__results-info">
-            <p>{{ totalResults }} {{ activeFilter }} found</p>
+          <div v-else-if="store.searchQuery || (activeFilter === 'projects' && selectedProjectStatus !== 'all')" class="discover-page__results-info">
+            <p>{{ totalResults }} {{ activeFilter }} found
+              <span v-if="activeFilter === 'projects' && selectedProjectStatus !== 'all'">
+                with status "{{ store.projectStatuses.find(s => s.id === selectedProjectStatus)?.name }}"
+              </span>
+            </p>
           </div>
           
           <!-- Startups display -->
@@ -218,6 +282,43 @@ onMounted(async () => {
 .discover-page__input {
   max-width: 600px;
   margin: 0 auto;
+}
+
+.discover-page__status-filter {
+  max-width: 300px;
+  margin: var(--space-4) auto 0;
+  text-align: center;
+}
+
+.discover-page__status-label {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--color-text-medium);
+  margin-bottom: var(--space-2);
+}
+
+.discover-page__status-select {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text-high);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.discover-page__status-select:hover {
+  border-color: var(--color-primary-400);
+}
+
+.discover-page__status-select:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-500/20);
 }
 
 .discover-page__results {
