@@ -14,11 +14,13 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@vuepic/vue-datepicker": "^11.0.2",
     "@vueuse/core": "^10.5.0",
     "jwt-decode": "^4.0.0",
     "lucide-vue-next": "^0.292.0",
     "pinia": "^2.1.7",
     "vue": "^3.4.38",
+    "vue-cal": "^4.10.2",
     "vue-router": "^4.2.5"
   },
   "devDependencies": {

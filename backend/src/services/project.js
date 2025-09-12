@@ -5,7 +5,7 @@ const config = require('@config/index');
 
 class Project {
     static async getAll({ page, limit }) {
-        const safeLimit = Math.min(limit, config.pagination.maxLimit);
+        const safeLimit = limit ? Math.min(limit, config.pagination.maxLimit) : config.pagination.defaultLimit;
         const offset = (page - 1) * safeLimit;
 
         const total = await ProjectRepository.countAll();

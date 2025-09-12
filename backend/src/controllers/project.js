@@ -12,6 +12,7 @@ class Project {
 
             return ApiResponse.paginated(res, result.projects, result.page, result.limit, result.total);
         } catch (error) {
+            console.error('Controller: Error in getAllProjects:', error);
             return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }

@@ -7,23 +7,72 @@ class Event {
 
     static getAllPaginated({ skip, take }) {
         return prisma.events.findMany({
-            skip,
-            take,
+            skip: skip || 0,
+            take: take || 10,
             orderBy: {
                 id: 'desc'
+            },
+            include: {
+                EventDates: true,
+                EventsCategories: true,
+                TargetAudiences: true
             }
         });
     }
 
     static async getById(id) {
         return prisma.events.findUnique({
-            where: { id }
+            where: { id },
+            include: {
+                EventDates: true,
+                EventsCategories: true,
+                TargetAudiences: true
+            }
         });
     }
 
     static async create(data) {
         return prisma.events.create({
-            data
+            data,
+            include: {
+                EventDates: true,
+                EventsCategories: true,
+                TargetAudiences: true
+            }
+        });
+    }
+
+    static async createWithDate(eventData, eventDate) {
+        return prisma.$transaction(async (tx) => {
+            // Create the event first
+            const event = await tx.events.create({
+                data: eventData,
+                include: {
+                    EventDates: true,
+                    EventsCategories: true,
+                    TargetAudiences: true
+                }
+            });
+
+            // Then create the event date
+            if (eventDate) {
+                await tx.eventDates.create({
+                    data: {
+                        date: new Date(eventDate),
+                        event_id: event.id
+                    }
+                });
+            }
+
+            // Return the event with its dates
+            return tx.events.findUnique({
+                where: { id: event.id },
+                include: {
+                    EventDates: true,
+                    EventsCategories: true,
+                    TargetAudiences: true
+                }
+            });
         });
     }
 

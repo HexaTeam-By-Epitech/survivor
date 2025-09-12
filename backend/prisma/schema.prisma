@@ -69,8 +69,8 @@ model EventsCategories {
 
 model Founders {
   id               Int                @id @default(autoincrement())
-  user_id          Int                @unique
-  Users            Users              @relation(fields: [user_id], references: [id], onDelete: NoAction)
+  user_id          Int
+  Users            Users              @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   StartupsFounders StartupsFounders[]
 }
 
@@ -200,6 +200,6 @@ model StartupsFounders {
   id         Int      @id @default(autoincrement())
   startup_id Int
   founder_id Int
-  Founders   Founders @relation(fields: [founder_id], references: [id], onDelete: Cascade)
-  Startups   Startups @relation(fields: [startup_id], references: [id], onDelete: Cascade)
+  Founders   Founders @relation(fields: [founder_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Startups   Startups @relation(fields: [startup_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

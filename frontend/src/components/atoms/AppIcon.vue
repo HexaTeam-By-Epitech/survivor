@@ -9,7 +9,14 @@ import {
   X, 
   ExternalLink,
   ArrowRight,
-  Calendar
+  Calendar,
+  List,
+  Plus,
+  MapPin,
+  Users,
+  Clock,
+  CalendarX,
+  Trash2
 } from 'lucide-vue-next';
 
 interface Props {
@@ -29,11 +36,19 @@ const iconComponent = computed(() => {
     search: Search,
     discover: Compass,
     calendar: Calendar,
+    'calendar-x': CalendarX,
     profile: User,
     menu: Menu,
     close: X,
+    x: X,
     external: ExternalLink,
-    arrow: ArrowRight
+    arrow: ArrowRight,
+    list: List,
+    plus: Plus,
+    'map-pin': MapPin,
+    users: Users,
+    clock: Clock,
+    'trash-2': Trash2
   };
   return icons[props.name] || Home;
 });

@@ -23,7 +23,15 @@ class Event {
     }
 
     static async create(data) {
-        return EventRepository.create(data);
+        const { eventDate, ...eventData } = data;
+
+        if (eventDate) {
+            // Use the new method that handles event dates
+            return EventRepository.createWithDate(eventData, eventDate);
+        } else {
+            // Fallback to regular create for backward compatibility
+            return EventRepository.create(eventData);
+        }
     }
 
     static async update(id, data) {

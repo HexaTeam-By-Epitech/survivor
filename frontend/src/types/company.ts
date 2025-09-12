@@ -122,7 +122,11 @@ export interface Event {
   description?: string;
   event_type_id?: number;
   target_audience_id?: number;
-  // Joined data
+  // Joined data - matching Prisma field names
+  EventsCategories?: EventCategory;
+  TargetAudiences?: TargetAudience;
+  EventDates?: EventDate[];
+  // Also support the lowercase version for compatibility
   event_type?: EventCategory;
   target_audience?: TargetAudience;
   event_dates?: EventDate[];

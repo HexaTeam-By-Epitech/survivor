@@ -12,6 +12,7 @@ class Event {
 
             return ApiResponse.paginated(res, result.events, result.page, result.limit, result.total);
         } catch (error) {
+            console.log("ERROR:" + error);
             return ApiResponse.error(res, 'Internal error', 'INTERNAL_ERROR', 550, error);
         }
     }

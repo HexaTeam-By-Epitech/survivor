@@ -1,327 +1,686 @@
-<script setup lang="ts">
-import { onMounted, computed } from 'vue';
-import { useAppStore } from '@/app/store';
-import AppButton from '@/components/atoms/AppButton.vue';
-
-const store = useAppStore();
-
-const upcomingEvents = computed(() => {
-  // Pour l'instant, on affiche tous les événements
-  return store.events;
-});
-
-onMounted(async () => {
-  document.title = 'Events | JEB Incubator';
-  
-  // Load events if not already loaded
-  if (store.events.length === 0) {
-    await store.fetchEvents({ limit: 50, upcoming: true });
-  }
-});
-</script>
-
 <template>
   <div class="events-page">
-    <div class="container">
-      <header class="events-page__header">
-        <h1 class="events-page__title">Events & Calendar</h1>
-        <p class="events-page__subtitle">
-          Stay up to date with conferences, pitch sessions, workshops, and networking events
-        </p>
-      </header>
-      
-      <section class="events-page__content">
-        <div v-if="store.loading.events" class="events-page__loading">
-          <p>Loading events...</p>
-        </div>
-        
-        <div v-else-if="store.errors.events" class="events-page__error">
-          <p>Error loading events. Please try again later.</p>
-        </div>
-        
-        <div v-else-if="upcomingEvents.length === 0" class="events-page__no-events">
-          <div class="events-page__no-events-content">
-            <h2>No Upcoming Events</h2>
-            <p>Check back soon for exciting events, workshops, and conferences!</p>
-          </div>
-        </div>
-        
-        <div v-else class="events-page__events-grid">
-          <div 
-            v-for="event in upcomingEvents" 
-            :key="event.id"
-            class="events-page__event-card"
+    <!-- Header -->
+    <div class="events-header">
+      <h1 class="page-title">Events</h1>
+      <div class="header-actions">
+        <!-- View Toggle -->
+        <div class="view-toggle">
+          <AppButton 
+            :variant="viewMode === 'calendar' ? 'primary' : 'outline'"
+            size="sm"
+            @click="viewMode = 'calendar'"
           >
-            <div class="events-page__event-header">
-              <div class="events-page__event-date">
-                <span class="events-page__event-day">{{ new Date().getDate() }}</span>
-                <span class="events-page__event-month">{{ new Date().toLocaleDateString('en', { month: 'short' }) }}</span>
-              </div>
-              <div class="events-page__event-category">
-                {{ event.event_type?.name || 'General' }}
+            <AppIcon name="calendar" :size="16" />
+            Calendar
+          </AppButton>
+          <AppButton 
+            :variant="viewMode === 'list' ? 'primary' : 'outline'"
+            size="sm"
+            @click="viewMode = 'list'"
+          >
+            <AppIcon name="list" :size="16" />
+            List
+          </AppButton>
+        </div>
+        
+        <!-- Create Event Button -->
+        <AppButton 
+          variant="primary"
+          @click="openCreateModal"
+        >
+          <AppIcon name="plus" :size="16" />
+          Create Event
+        </AppButton>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+      <div class="search-filter">
+        <AppInput
+          v-model="searchQuery"
+          placeholder="Search events..."
+          type="text"
+        />
+      </div>
+      
+      <div class="category-filter">
+        <select 
+          v-model="selectedCategory" 
+          class="filter-select"
+        >
+          <option :value="null">All Categories</option>
+          <option 
+            v-for="category in store.eventCategories" 
+            :key="category.id" 
+            :value="category.id"
+          >
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="store.loading.events" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading events...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="store.errors.events" class="error-state">
+      <AppIcon name="x" :size="24" />
+      <p>{{ store.errors.events }}</p>
+      <AppButton @click="loadEvents" variant="outline">
+        Try Again
+      </AppButton>
+    </div>
+
+    <!-- Events Content -->
+    <div v-else class="events-content">
+      <!-- Calendar View -->
+      <div v-if="viewMode === 'calendar'" class="calendar-view">
+        <VueCal 
+          :events="calendarEvents"
+          :active-view="'month'"
+          :click-to-navigate="true"
+          :dblclick-to-navigate="false"
+          @event-click="handleEventClick"
+          class="vue-cal-custom"
+        />
+      </div>
+
+      <!-- List View -->
+      <div v-else class="list-view">
+        <div v-if="filteredEvents.length === 0" class="empty-state">
+          <AppIcon name="calendar" :size="48" />
+          <h3>No events found</h3>
+          <p>Try adjusting your search or create a new event.</p>
+        </div>
+        
+        <div v-else class="events-grid">
+          <div 
+            v-for="event in filteredEvents" 
+            :key="event.id"
+            class="event-card"
+            @click="selectEvent(event)"
+          >
+            <div class="event-header">
+              <h3 class="event-title">{{ event.name }}</h3>
+              <div class="event-actions">
+                <AppButton 
+                  variant="ghost" 
+                  size="sm"
+                  @click.stop="editEvent(event)"
+                >
+                  <AppIcon name="user" :size="16" />
+                </AppButton>
+                <AppButton 
+                  variant="ghost" 
+                  size="sm"
+                  @click.stop="deleteEvent(event.id)"
+                >
+                  <AppIcon name="trash-2" :size="16" />
+                </AppButton>
               </div>
             </div>
             
-            <div class="events-page__event-content">
-              <h3 class="events-page__event-title">{{ event.name || 'Event Title' }}</h3>
-              <p class="events-page__event-description">
-                {{ event.description || 'Event description will be available soon.' }}
-              </p>
-              
-              <div class="events-page__event-details">
-                <div class="events-page__event-detail">
-                  <span class="events-page__event-detail-label">Time:</span>
-                  <span>{{ event.event_dates?.[0]?.date || 'TBA' }}</span>
-                </div>
-                <div class="events-page__event-detail">
-                  <span class="events-page__event-detail-label">Location:</span>
-                  <span>{{ event.location || 'Online' }}</span>
-                </div>
+            <div class="event-details">
+              <div v-if="(event.EventDates?.[0] || event.event_dates?.[0])" class="event-date">
+                <AppIcon name="clock" :size="16" />
+                <span>{{ formatDate((event.EventDates?.[0]?.date || event.event_dates?.[0]?.date) || '') }}</span>
               </div>
               
-              <div class="events-page__event-actions">
-                <AppButton variant="primary" size="sm">
-                  Register
-                </AppButton>
-                <AppButton variant="outline" size="sm">
-                  Learn More
-                </AppButton>
+              <div v-if="event.location" class="event-location">
+                <AppIcon name="map-pin" :size="16" />
+                <span>{{ event.location }}</span>
+              </div>
+              
+              <div v-if="(event.EventsCategories || event.event_type)" class="event-category">
+                <AppIcon name="user" :size="16" />
+                <span>{{ (event.EventsCategories?.name || event.event_type?.name) }}</span>
               </div>
             </div>
+            
+            <p v-if="event.description" class="event-description">
+              {{ event.description }}
+            </p>
           </div>
         </div>
-      </section>
-      
-      <!-- Placeholder for calendar view -->
-      <section class="events-page__calendar-section">
-        <h2 class="events-page__section-title">Calendar View</h2>
-        <div class="events-page__calendar-placeholder">
-          <p>Interactive calendar coming soon...</p>
-          <p class="events-page__calendar-hint">
-            For now, you can view events in the list above. Calendar integration will be available in a future update.
-          </p>
+      </div>
+    </div>
+
+    <!-- Simple Create Modal Placeholder -->
+    <div v-if="showCreateModal" class="modal-backdrop" @click="closeCreateModal">
+      <div class="modal" @click.stop>
+        <div class="modal-header">
+          <h2>Create Event</h2>
+          <button @click="closeCreateModal" class="modal-close">&times;</button>
         </div>
-      </section>
+        <div class="modal-body">
+          <form @submit.prevent="createEvent">
+            <div class="form-group">
+              <label>Event Name</label>
+              <input v-model="createForm.name" required />
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea v-model="createForm.description"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Location</label>
+              <input v-model="createForm.location" />
+            </div>
+            <div class="form-group">
+              <label>Event Date</label>
+              <input 
+                v-model="createForm.eventDate" 
+                type="datetime-local" 
+                required
+              />
+            </div>
+            <div class="form-actions">
+              <button type="button" @click="closeCreateModal">Cancel</button>
+              <button type="submit" :disabled="loading">Create</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
+import { useAppStore } from '@/app/store'
+import { api } from '@/services/api'
+import VueCal from 'vue-cal'
+import 'vue-cal/dist/vuecal.css'
+import AppButton from '@/components/atoms/AppButton.vue'
+import AppIcon from '@/components/atoms/AppIcon.vue'
+import AppInput from '@/components/atoms/AppInput.vue'
+import type { Event } from '@/types/company'
+import type { CalendarEvent } from 'vue-cal'
+
+const store = useAppStore();
+
+// State
+const viewMode = ref<'calendar' | 'list'>('calendar');
+const showCreateModal = ref(false);
+const selectedEvent = ref<Event | null>(null);
+const searchQuery = ref('');
+const selectedCategory = ref<number | null>(null);
+const loading = ref(false);
+
+// Create form state
+interface CreateEventData {
+  name: string
+  description: string
+  location: string
+  event_type_id: number | null
+  target_audience_id: number | null
+  event_dates: Date[]
+  eventDate: string // For datetime-local input
+}
+
+const createForm = ref<CreateEventData>({
+  name: '',
+  description: '',
+  location: '',
+  event_type_id: null,
+  target_audience_id: null,
+  event_dates: [],
+  eventDate: ''
+});
+
+// Computed properties
+const calendarEvents = computed((): CalendarEvent[] => {
+  return store.events.map((event: Event) => ({
+    id: event.id,
+    title: event.name,
+    content: event.description || '',
+    start: (event.EventDates?.[0]?.date || event.event_dates?.[0]?.date) || new Date().toISOString(),
+    end: (event.EventDates?.[0]?.date || event.event_dates?.[0]?.date) || new Date().toISOString(),
+    class: `event-${(event.EventsCategories?.id || event.event_type?.id) || 'default'}`,
+    allDay: true
+  }));
+});
+
+// Filtered events for list view
+const filteredEvents = computed(() => {
+  return store.events.filter((event: Event) => {
+    const matchesSearch = !searchQuery.value || 
+      event.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      event.description?.toLowerCase().includes(searchQuery.value.toLowerCase());
+    
+    const matchesCategory = !selectedCategory.value || 
+      event.event_type_id === selectedCategory.value;
+    
+    return matchesSearch && matchesCategory;
+  }).sort((a: Event, b: Event) => {
+    const dateA = (a.EventDates?.[0]?.date || a.event_dates?.[0]?.date) || '';
+    const dateB = (b.EventDates?.[0]?.date || b.event_dates?.[0]?.date) || '';
+    return new Date(dateA).getTime() - new Date(dateB).getTime();
+  });
+});
+
+// Methods
+const loadEvents = async () => {
+  await store.fetchEvents();
+  await store.fetchReferenceData();
+};
+
+const openCreateModal = () => {
+  showCreateModal.value = true;
+};
+
+const closeCreateModal = () => {
+  showCreateModal.value = false;
+  createForm.value = {
+    name: '',
+    description: '',
+    location: '',
+    event_type_id: null,
+    target_audience_id: null,
+    event_dates: [],
+    eventDate: ''
+  };
+};
+
+const createEvent = async () => {
+  if (!createForm.value.name || !createForm.value.eventDate) return;
+  
+  loading.value = true;
+  try {
+    // Create event data in the format expected by the backend
+    const eventData: Partial<Event> = {
+      name: createForm.value.name,
+      description: createForm.value.description || undefined,
+      location: createForm.value.location || undefined,
+      event_type_id: createForm.value.event_type_id || undefined,
+      target_audience_id: createForm.value.target_audience_id || undefined
+    };
+
+    // Include the event date to be handled by backend
+    const eventDataWithDate = {
+      ...eventData,
+      eventDate: createForm.value.eventDate
+    };
+
+    const response = await api.events.create(eventDataWithDate as any);
+    
+    if (response.success) {
+      console.log('Event created successfully:', response.data);
+      closeCreateModal();
+      await loadEvents(); // Reload events to show the new one
+    } else {
+      throw new Error('Failed to create event');
+    }
+  } catch (error) {
+    console.error('Error creating event:', error);
+    alert('Failed to create event. Please try again.');
+  } finally {
+    loading.value = false;
+  }
+};
+
+const editEvent = (event: Event) => {
+  selectedEvent.value = event;
+  console.log('Edit event:', event);
+};
+
+const deleteEvent = async (eventId: number) => {
+  if (!confirm('Are you sure you want to delete this event?')) return;
+  
+  loading.value = true;
+  try {
+    // TODO: Implement event deletion API call
+    console.log('Deleting event:', eventId);
+    await loadEvents();
+  } catch (error) {
+    console.error('Error deleting event:', error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const selectEvent = (event: Event) => {
+  selectedEvent.value = event;
+};
+
+const handleEventClick = (event: any) => {
+  const foundEvent = store.events.find((e: Event) => e.id.toString() === event.id.toString());
+  if (foundEvent) {
+    selectEvent(foundEvent);
+  }
+};
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+// Initialize data
+onMounted(() => {
+  loadEvents();
+});
+</script>
+
 <style scoped>
 .events-page {
-  padding: var(--space-4) 0;
-}
-
-.events-page__header {
-  text-align: center;
-  margin-bottom: var(--space-8);
-}
-
-.events-page__title {
-  font-size: var(--fs-2xl);
-  font-weight: 600;
-  margin-bottom: var(--space-3);
-  color: var(--color-text-high);
-}
-
-.events-page__subtitle {
-  font-size: var(--fs-md);
-  color: var(--color-text-medium);
-  max-width: 600px;
+  max-width: 1200px;
   margin: 0 auto;
-  line-height: var(--lh-base);
+  padding: 2rem;
 }
 
-.events-page__loading,
-.events-page__error {
-  text-align: center;
-  padding: var(--space-8);
-  color: var(--color-text-medium);
-}
-
-.events-page__error {
-  color: var(--color-danger);
-}
-
-.events-page__no-events {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
-}
-
-.events-page__no-events-content {
-  text-align: center;
-  color: var(--color-text-muted);
-}
-
-.events-page__no-events-content h2 {
-  font-size: var(--fs-xl);
-  margin-bottom: var(--space-3);
-  color: var(--color-text-medium);
-}
-
-.events-page__events-grid {
-  display: grid;
-  gap: var(--space-6);
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  margin-bottom: var(--space-12);
-}
-
-.events-page__event-card {
-  background: var(--gradient-surface);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.events-page__event-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-2);
-}
-
-.events-page__event-header {
+.events-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--space-4);
-}
-
-.events-page__event-date {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  background: var(--gradient-hero);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
-  min-width: 60px;
+  margin-bottom: 2rem;
 }
 
-.events-page__event-day {
-  font-size: var(--fs-xl);
-  font-weight: 600;
-  color: var(--color-text-high);
-  line-height: 1;
+.page-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0;
 }
 
-.events-page__event-month {
-  font-size: var(--fs-xs);
-  color: var(--color-text-high);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.events-page__event-category {
-  background: var(--color-primary-500/10);
-  color: var(--color-primary-400);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  font-size: var(--fs-xs);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.events-page__event-content {
-  flex: 1;
-}
-
-.events-page__event-title {
-  font-size: var(--fs-lg);
-  font-weight: 600;
-  margin-bottom: var(--space-3);
-  color: var(--color-text-high);
-  line-height: var(--lh-tight);
-}
-
-.events-page__event-description {
-  font-size: var(--fs-sm);
-  color: var(--color-text-medium);
-  line-height: var(--lh-base);
-  margin-bottom: var(--space-4);
-}
-
-.events-page__event-details {
+.header-actions {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin-bottom: var(--space-6);
+  gap: 1rem;
+  align-items: center;
 }
 
-.events-page__event-detail {
+.view-toggle {
   display: flex;
-  gap: var(--space-2);
-  font-size: var(--fs-sm);
+  gap: 0.5rem;
 }
 
-.events-page__event-detail-label {
-  font-weight: 500;
-  color: var(--color-text-high);
-  min-width: 70px;
-}
-
-.events-page__event-detail span:last-child {
-  color: var(--color-text-medium);
-}
-
-.events-page__event-actions {
+.filters-section {
   display: flex;
-  gap: var(--space-3);
+  gap: 1rem;
+  margin-bottom: 2rem;
   flex-wrap: wrap;
 }
 
-.events-page__calendar-section {
-  margin-top: var(--space-12);
+.search-filter {
+  flex: 1;
+  min-width: 200px;
 }
 
-.events-page__section-title {
-  font-size: var(--fs-xl);
+.category-filter {
+  min-width: 200px;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.loading-state, .error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.events-content {
+  min-height: 400px;
+}
+
+.calendar-view {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.vue-cal-custom {
+  height: 600px;
+}
+
+.list-view {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #6b7280;
+}
+
+.empty-state h3 {
+  margin: 1rem 0 0.5rem;
+  color: #374151;
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.event-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.event-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.event-title {
+  font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: var(--space-6);
-  color: var(--color-text-high);
-  text-align: center;
+  color: #1f2937;
+  margin: 0;
+  flex: 1;
 }
 
-.events-page__calendar-placeholder {
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  padding: var(--space-8);
-  text-align: center;
-  color: var(--color-text-muted);
-  border: 2px dashed var(--color-border);
+.event-actions {
+  display: flex;
+  gap: 0.5rem;
 }
 
-.events-page__calendar-hint {
-  margin-top: var(--space-3);
-  font-size: var(--fs-sm);
-  opacity: 0.8;
+.event-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-@media (min-width: 640px) {
+.event-date,
+.event-location,
+.event-category {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.event-description {
+  color: #374151;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Modal styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #1f2937;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.form-actions button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-actions button[type="button"] {
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.form-actions button[type="submit"] {
+  background: #3b82f6;
+  border: 1px solid #3b82f6;
+  color: white;
+}
+
+.form-actions button:hover {
+  opacity: 0.9;
+}
+
+.form-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
   .events-page {
-    padding: var(--space-6) 0;
+    padding: 1rem;
   }
   
-  .events-page__events-grid {
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  }
-}
-
-@media (min-width: 1024px) {
-  .events-page {
-    padding: var(--space-8) 0;
+  .events-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
   }
   
-  .events-page__title {
-    font-size: var(--fs-3xl);
+  .header-actions {
+    justify-content: space-between;
   }
   
-  .events-page__subtitle {
-    font-size: var(--fs-lg);
+  .events-grid {
+    grid-template-columns: 1fr;
   }
   
-  .events-page__events-grid {
-    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+  .filters-section {
+    flex-direction: column;
   }
 }
 </style>

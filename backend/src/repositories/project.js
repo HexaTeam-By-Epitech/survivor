@@ -10,10 +10,12 @@ class ProjectRepository {
             skip,
             take,
             include: {
-                Startups: true
+                Startups: true,
+                ProjectStatus: true,
+                Sectors: true
             },
             orderBy: {
-                created_at: 'asc'
+                id: 'asc'
             }
         });
     }
@@ -22,7 +24,13 @@ class ProjectRepository {
         return prisma.projects.findUnique({
             where: { id },
             include: {
-                Startups: true
+                Startups: {
+                    include: {
+                        Companies: true
+                    }
+                },
+                ProjectStatus: true,
+                Sectors: true
             }
         });
     }
@@ -31,7 +39,13 @@ class ProjectRepository {
         return prisma.projects.create({
             data,
             include: {
-                Startups: true
+                Startups: {
+                    include: {
+                        Companies: true
+                    }
+                },
+                ProjectStatus: true,
+                Sectors: true
             }
         });
     }
@@ -41,7 +55,13 @@ class ProjectRepository {
             where: { id },
             data,
             include: {
-                Startups: true
+                Startups: {
+                    include: {
+                        Companies: true
+                    }
+                },
+                ProjectStatus: true,
+                Sectors: true
             }
         });
     }
@@ -55,14 +75,30 @@ class ProjectRepository {
     static async findByStartupId(startupId) {
         return prisma.projects.findMany({
             where: { startup_id: startupId },
-            include: { Startups: true }
+            include: {
+                Startups: {
+                    include: {
+                        Companies: true
+                    }
+                },
+                ProjectStatus: true,
+                Sectors: true
+            }
         });
     }
 
     static async findByName(name) {
         return prisma.projects.findMany({
             where: { name: { contains: name, mode: 'insensitive' } },
-            include: { Startups: true }
+            include: {
+                Startups: {
+                    include: {
+                        Companies: true
+                    }
+                },
+                ProjectStatus: true,
+                Sectors: true
+            }
         });
     }
 }
